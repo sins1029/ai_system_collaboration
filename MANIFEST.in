@@ -1,0 +1,1 @@
+include src/datacenter_env/storage/schema.sql

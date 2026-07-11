@@ -1,0 +1,19 @@
+seed: 42
+time_step_minutes: 15
+input_csv: data/timeseries/single_center_24h.csv
+output_csv: results/mvp_timeseries.csv
+database_path: data/db/single_center.sqlite
+dataset_name: synthetic_single_center_24h_v1
+scenarios:
+  baseline:
+    dispatch_strategy: immediate
+    cooling_strategy: load_following
+    description: Process batch load immediately with load feedforward and temperature feedback.
+  heuristic:
+    dispatch_strategy: price_aware_temporal_shift
+    cooling_strategy: price_aware_precooling
+    description: Shift batch work and use price-aware precooling with explicit thermal constraints.
+  finite_horizon:
+    dispatch_strategy: immediate
+    cooling_strategy: finite_horizon
+    description: Receding-horizon cooling optimization with bounded forecasts and explicit fallback.

@@ -1,0 +1,13 @@
+source: synthetic-standard-v1
+seed: 42
+start_timestamp: 2026-01-01T00:00:00
+timezone: Asia/Shanghai
+steps: 96
+time_step_minutes: 15
+renewable_enabled: true
+renewable_peak_kw: 320.0
+workload_noise_std: 0.012
+batch_noise_std: 0.008
+price_noise_std: 0.012
+carbon_noise_std: 0.010
+temperature_noise_std_c: 0.15

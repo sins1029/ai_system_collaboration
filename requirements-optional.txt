@@ -1,0 +1,4 @@
+# Optional experiment tracking and later multi-agent extensions.
+wandb>=0.17
+ray[rllib]>=2.30
+

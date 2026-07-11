@@ -1,0 +1,6 @@
+-r requirements.txt
+cvxpy>=1.5
+pyomo>=6.7
+highspy>=1.7
+scipy>=1.11
+

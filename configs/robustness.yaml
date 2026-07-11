@@ -1,0 +1,64 @@
+plant:
+  thermal_capacity_scale: 1.0
+  heat_transfer_scale: 1.0
+  cooling_effectiveness_scale: 1.0
+actuators:
+  ideal:
+    mode: ideal
+    initial_applied_cooling_kw: 0.0
+  rate_limited:
+    mode: rate_limited
+    initial_applied_cooling_kw: 0.0
+    max_ramp_up_kw_per_step: 70.0
+    max_ramp_down_kw_per_step: 90.0
+  first_order:
+    mode: first_order
+    initial_applied_cooling_kw: 0.0
+    time_constant_minutes: 30.0
+  delayed:
+    mode: delayed
+    initial_applied_cooling_kw: 0.0
+    delay_steps: 1
+measurements:
+  none:
+    mode: none
+    temperature_noise_std_c: 0.0
+    seed: 2026
+  gaussian_small:
+    mode: gaussian
+    temperature_noise_std_c: 0.15
+    seed: 2026
+mismatch_scenarios:
+  perfect_model:
+    thermal_capacity_scale: 1.0
+    heat_transfer_scale: 1.0
+    cooling_effectiveness_scale: 1.0
+  mild_mismatch:
+    thermal_capacity_scale: 1.05
+    heat_transfer_scale: 0.95
+    cooling_effectiveness_scale: 1.05
+  moderate_mismatch:
+    thermal_capacity_scale: 1.12
+    heat_transfer_scale: 0.90
+    cooling_effectiveness_scale: 1.12
+conditions:
+  ideal:
+    actuator: ideal
+    mismatch: perfect_model
+    measurement: none
+  rate_limited:
+    actuator: rate_limited
+    mismatch: perfect_model
+    measurement: none
+  mild_mismatch:
+    actuator: ideal
+    mismatch: mild_mismatch
+    measurement: none
+  rate_limited_mild_mismatch:
+    actuator: rate_limited
+    mismatch: mild_mismatch
+    measurement: none
+  combined_nonideal:
+    actuator: first_order
+    mismatch: mild_mismatch
+    measurement: gaussian_small

@@ -1,0 +1,20 @@
+capacity:
+  max_load: 1.0
+power:
+  p_idle_kw: 80.0
+  p_peak_kw: 260.0
+  p_aux_kw: 12.0
+thermal:
+  initial_temp_c: 24.0
+  min_temp_c: 18.0
+  setpoint_temp_c: 24.0
+  max_temp_c: 32.0
+  deadband_c: 0.5
+  thermal_resistance_c_per_kw: 0.18
+  thermal_capacitance_kwh_per_c: 55.0
+cooling:
+  max_cooling_kw: 280.0
+  temperature_feedback_gain_kw_per_c: 30.0
+  cop_base: 4.0
+  cop_temp_slope: 0.035
+  cop_min: 2.2

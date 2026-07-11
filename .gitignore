@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+.venv311/
+.venv*/
+venv/
+env/
+.cache/
+.runtime/
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Generated outputs
+results/*
+!results/.gitkeep
+
+# Data policy: keep only small samples in Git.
+data/raw/
+data/workload/
+data/weather/
+data/electricity_price/
+data/carbon/
+data/renewable/
+data/db/*
+!data/db/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# External reference repositories are read-only references, not mainline code.
+references/external_repos/*
+!references/external_repos/.gitkeep
+!references/external_repos/README.md
+
+# Local environment
+.env
+.env.*
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+~$*

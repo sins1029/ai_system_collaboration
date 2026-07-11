@@ -1,0 +1,28 @@
+batch:
+  max_service_per_step: 0.85
+  lookahead_steps: 8
+  low_price_threshold: 0.40
+  high_price_threshold: 0.72
+  backlog_penalty_weight: 0.35
+cooling:
+  low_price_threshold: 0.40
+  high_price_threshold: 0.72
+  precooling:
+    enabled: true
+    lookahead_steps: 24
+    max_precool_delta_c: 3.0
+    precool_floor_c: 20.5
+finite_horizon:
+  horizon_steps: 8
+  beam_width: 24
+  candidate_count: 7
+  mpc_temperature_floor_c: 20.5
+  objective:
+    cost_weight: 1.0
+    carbon_weight: 0.15
+    temperature_weight: 0.50
+    control_movement_weight: 2.00
+  prediction:
+    thermal_capacity_scale: 1.0
+    heat_transfer_scale: 1.0
+    cooling_effectiveness_scale: 1.0

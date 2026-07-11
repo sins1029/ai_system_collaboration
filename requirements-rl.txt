@@ -1,0 +1,5 @@
+-r requirements-optimization.txt
+gymnasium>=0.29
+stable-baselines3>=2.3
+tensorboard>=2.16
+
