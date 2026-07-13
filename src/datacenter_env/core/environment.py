@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta
 import math
 from typing import Any, Mapping
@@ -15,6 +16,11 @@ from datacenter_env.contracts import (
     ExogenousInput,
     PhysicalResult,
     StepResult,
+    TaskArrivalBatch,
+    TaskOutcome,
+    TaskSchedulingDecision,
+    TaskSchedulingObservation,
+    TaskStatus,
 )
 from datacenter_env.core.actuator import CoolingActuator
 from datacenter_env.core.measurement import TemperatureMeasurement
@@ -24,6 +30,7 @@ from datacenter_env.core.primitives import it_power_kw, next_temperature_c
 from datacenter_env.core.safety import apply_thermal_constraints
 from datacenter_env.core.state import DataCenterSnapshot
 from datacenter_env.exceptions import InputValidationError, TimeAlignmentError
+from datacenter_env.tasking import TaskRuntime
 
 
 class DataCenterEnvironment:
@@ -59,6 +66,9 @@ class DataCenterEnvironment:
         self._measurement = TemperatureMeasurement(
             self.config.measurement, seed=measurement_seed
         )
+        self._task_runtime = (
+            TaskRuntime(self.config) if self.config.workload_mode == "task_queue" else None
+        )
 
     def _reset_state(self) -> None:
         initial = float(self.config.datacenter["thermal"]["initial_temp_c"])
@@ -88,9 +98,43 @@ class DataCenterEnvironment:
             carbon_intensity_kg_per_kwh=0.0,
             outdoor_temperature_c=0.0,
             renewable_power_kw=0.0,
+            workload_mode=self.config.workload_mode,
         )
 
     def get_observation(self, current_input: ExogenousInput) -> DataCenterObservation:
+        if self._task_runtime is not None:
+            task_observation = self._task_runtime.observation(
+                current_input.timestamp, current_input
+            )
+            cpu, gpu, memory = self._task_runtime.aggregator.utilizations(
+                self._task_runtime.pool.usage
+            )
+            return DataCenterObservation(
+                timestamp=current_input.timestamp,
+                measured_temperature_c=self._measured_temperature_c,
+                previous_applied_cooling_kw=self._actuator_state.applied_cooling_kw,
+                workload_fraction=self._task_runtime.current_workload_fraction,
+                electricity_price_per_kwh=current_input.electricity_price_per_kwh,
+                carbon_intensity_kg_per_kwh=current_input.carbon_intensity_kg_per_kwh,
+                outdoor_temperature_c=current_input.outdoor_temperature_c,
+                renewable_power_kw=current_input.renewable_power_kw,
+                workload_mode="task_queue",
+                cpu_utilization=cpu,
+                gpu_utilization=gpu,
+                memory_utilization=memory,
+                available_cpu_cores=task_observation.available_resources.cpu_cores,
+                available_gpu_units=task_observation.available_resources.gpu_units,
+                available_memory_gb=task_observation.available_resources.memory_gb,
+                waiting_task_count=len(task_observation.waiting_tasks),
+                running_task_count=len(task_observation.running_tasks),
+                completed_task_count=(
+                    self._task_runtime.count(TaskStatus.COMPLETED)
+                    + self._task_runtime.count(TaskStatus.SLA_VIOLATED)
+                ),
+                at_risk_task_count=self._task_runtime.at_risk_count(current_input.timestamp),
+                waiting_tasks=task_observation.waiting_tasks,
+                running_tasks=task_observation.running_tasks,
+            )
         return DataCenterObservation(
             timestamp=current_input.timestamp,
             measured_temperature_c=self._measured_temperature_c,
@@ -100,7 +144,36 @@ class DataCenterEnvironment:
             carbon_intensity_kg_per_kwh=current_input.carbon_intensity_kg_per_kwh,
             outdoor_temperature_c=current_input.outdoor_temperature_c,
             renewable_power_kw=current_input.renewable_power_kw,
+            workload_mode="legacy_aggregate",
         )
+
+    def prepare_task_step(
+        self,
+        current_input: ExogenousInput,
+        task_arrivals: TaskArrivalBatch,
+    ) -> TaskSchedulingObservation:
+        if self._task_runtime is None:
+            raise InputValidationError("task arrivals are only valid in task_queue mode")
+        self._validate_time(current_input)
+        if abs(current_input.workload_fraction) > 1e-12:
+            raise InputValidationError(
+                "task_queue mode requires external workload_fraction to be 0"
+            )
+        return self._task_runtime.begin_step(
+            current_input.timestamp, task_arrivals, current_input
+        )
+
+    def apply_task_decision(
+        self,
+        timestamp: datetime,
+        decision: TaskSchedulingDecision,
+    ) -> float:
+        if self._task_runtime is None:
+            raise InputValidationError("task decisions are only valid in task_queue mode")
+        return self._task_runtime.apply_decision(timestamp, decision)
+
+    def task_outcomes(self) -> tuple[TaskOutcome, ...]:
+        return self._task_runtime.outcomes() if self._task_runtime is not None else ()
 
     def step(
         self,
@@ -109,8 +182,42 @@ class DataCenterEnvironment:
         predicted_next_temperature_c: float | None = None,
         *,
         controller_decision: ControllerDecision | None = None,
+        task_arrivals: TaskArrivalBatch | None = None,
     ) -> StepResult:
         self._validate_time(current_input)
+        task_result = None
+        if self._task_runtime is not None:
+            if abs(current_input.workload_fraction) > 1e-12:
+                raise InputValidationError(
+                    "task_queue mode requires external workload_fraction to be 0"
+                )
+            if self._task_runtime.prepared_timestamp is None:
+                if task_arrivals is None:
+                    raise InputValidationError(
+                        "task_queue mode requires a TaskArrivalBatch for every step"
+                    )
+                self._task_runtime.begin_step(
+                    current_input.timestamp, task_arrivals, current_input
+                )
+            elif task_arrivals is not None:
+                if task_arrivals.timestamp != self._task_runtime.prepared_timestamp:
+                    raise TimeAlignmentError("task arrival batch timestamp does not match prepared step")
+            if not self._task_runtime.decision_applied:
+                if action.task_decision is None:
+                    raise InputValidationError(
+                        "task_queue mode requires DataCenterAction.task_decision"
+                    )
+                self._task_runtime.apply_decision(
+                    current_input.timestamp, action.task_decision
+                )
+            current_input = replace(
+                current_input,
+                workload_fraction=self._task_runtime.current_workload_fraction,
+            )
+        elif action.task_decision is not None or task_arrivals is not None:
+            raise InputValidationError(
+                "task decisions and arrivals are not accepted in legacy_aggregate mode"
+            )
         dc = self.config.datacenter
         thermal = dc["thermal"]
         power = dc["power"]
@@ -223,6 +330,8 @@ class DataCenterEnvironment:
         self._previous_proposed_cooling_kw = proposed
         self._last_timestamp = current_input.timestamp
         self._step_index += 1
+        if self._task_runtime is not None:
+            task_result = self._task_runtime.finish_step(current_input.timestamp)
         observation = self.get_observation(current_input)
         return StepResult(
             observation=observation,
@@ -230,6 +339,7 @@ class DataCenterEnvironment:
             accounting=accounting,
             diagnostics=diagnostics,
             controller=controller,
+            tasking=task_result,
         )
 
     def snapshot(self) -> DataCenterSnapshot:

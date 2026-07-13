@@ -28,3 +28,11 @@ class StorageError(DataCenterError):
 
 class RunStateError(DataCenterError):
     pass
+
+
+class SchedulingError(DataCenterError):
+    pass
+
+
+class UnschedulableTaskError(SchedulingError):
+    pass

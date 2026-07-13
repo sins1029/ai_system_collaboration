@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 4
 
 
 def schema_text() -> str:
@@ -34,6 +34,16 @@ def _migrate_legacy_database(connection: sqlite3.Connection) -> None:
         "experiment_runs": {
             "controller_name": "TEXT",
             "condition_name": "TEXT",
+            "scheduler_name": "TEXT",
+            "cooling_controller_name": "TEXT",
+            "task_dataset_id": "TEXT",
+            "interface_type": "TEXT",
+            "environment_id": "TEXT",
+            "reward_config_json": "TEXT",
+            "observation_config_json": "TEXT",
+            "invalid_action_policy": "TEXT",
+            "candidate_order": "TEXT",
+            "episode_seed": "INTEGER",
             "actuator_mode": "TEXT",
             "mismatch_scenario": "TEXT",
             "measurement_mode": "TEXT",
@@ -55,6 +65,17 @@ def _migrate_legacy_database(connection: sqlite3.Connection) -> None:
             "actual_next_temperature_c": "REAL",
             "one_step_temperature_prediction_error_c": "REAL",
             "fallback_reason": "TEXT",
+            "workload_mode": "TEXT",
+            "cpu_utilization": "REAL",
+            "gpu_utilization": "REAL",
+            "memory_utilization": "REAL",
+            "waiting_task_count": "INTEGER",
+            "running_task_count": "INTEGER",
+            "completed_task_count": "INTEGER",
+            "at_risk_task_count": "INTEGER",
+        },
+        "run_task_outcomes": {
+            "resource_blocked_count": "INTEGER NOT NULL DEFAULT 0",
         },
     }
     for table, columns in additions.items():

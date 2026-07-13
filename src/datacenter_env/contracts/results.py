@@ -8,6 +8,7 @@ import pandas as pd
 
 from datacenter_env.contracts.actions import DataCenterAction
 from datacenter_env.contracts.observations import DataCenterObservation
+from datacenter_env.contracts.tasks import TaskOutcome, TaskStepResult
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,6 +109,7 @@ class StepResult:
     controller: ControllerResult
     terminated: bool = False
     truncated: bool = False
+    tasking: TaskStepResult | None = None
 
     def to_record(self) -> dict[str, Any]:
         record: dict[str, Any] = {
@@ -131,6 +133,32 @@ class RunMetadata:
     source_path: str = "external-provider"
     config_snapshot: Mapping[str, Any] | None = None
     package_version: str | None = None
+    scheduler_name: str | None = None
+    cooling_controller_name: str | None = None
+    task_dataset_id: str | None = None
+    dataset_metadata: Mapping[str, Any] | None = None
+    interface_type: str | None = None
+    environment_id: str | None = None
+    reward_config: Mapping[str, Any] | None = None
+    observation_config: Mapping[str, Any] | None = None
+    invalid_action_policy: str | None = None
+    candidate_order: str | None = None
+    episode_seed: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class AgentDecisionRecord:
+    decision_step_index: int
+    simulation_step_index: int
+    timestamp: datetime
+    candidate_task_id: str | None
+    action: int
+    action_legal: bool
+    action_mask: tuple[int, int]
+    decision_reward: float
+    simulation_reward: float
+    total_reward: float
+    reward_components: Mapping[str, float]
 
 
 @dataclass(frozen=True, slots=True)
@@ -144,10 +172,11 @@ class RunSummary:
     run_id: int | None
     controller_name: str
     condition_name: str
-    metrics: Mapping[str, float]
+    metrics: Mapping[str, float | None]
     steps: tuple[StepResult, ...]
     error_message: str | None = None
     records: tuple[Mapping[str, Any], ...] = ()
+    task_outcomes: tuple[TaskOutcome, ...] = ()
 
     def to_frame(self) -> pd.DataFrame:
         if self.records:

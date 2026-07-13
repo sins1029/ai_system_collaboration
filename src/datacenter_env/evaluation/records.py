@@ -19,6 +19,7 @@ def step_to_record(step: StepResult, config: DataCenterSystemConfig) -> dict[str
     applied_movement = abs(
         physical.applied_cooling_kw - physical.previous_applied_cooling_kw
     )
+    tasking = step.tasking
     return {
         "timestamp": obs.timestamp,
         "online_load": obs.workload_fraction,
@@ -122,6 +123,14 @@ def step_to_record(step: StepResult, config: DataCenterSystemConfig) -> dict[str
         "objective_control_movement": controller.objective_control_movement,
         "invalid_value_count": diagnostics.invalid_value_count,
         "negative_power_count": diagnostics.negative_power_count,
+        "workload_mode": obs.workload_mode,
+        "cpu_utilization": tasking.cpu_utilization if tasking else 0.0,
+        "gpu_utilization": tasking.gpu_utilization if tasking else 0.0,
+        "memory_utilization": tasking.memory_utilization if tasking else 0.0,
+        "waiting_task_count": tasking.waiting_count if tasking else 0,
+        "running_task_count": tasking.running_count if tasking else 0,
+        "completed_task_count": tasking.completed_count if tasking else 0,
+        "at_risk_task_count": tasking.at_risk_count if tasking else 0,
         "dc_energy_kwh": accounting.dc_energy_kwh,
         "grid_energy_kwh": accounting.grid_energy_kwh,
         "cooling_energy_kwh": accounting.cooling_energy_kwh,

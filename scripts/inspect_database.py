@@ -70,7 +70,11 @@ def run_health(conn: sqlite3.Connection, run_id: int, dataset_id: int) -> dict[s
 
 def main() -> None:
     exp_config = load_yaml(ROOT / "configs" / "experiment.yaml")
-    db_path = ROOT / exp_config["database_path"]
+    db_path = (
+        Path(sys.argv[1]).resolve()
+        if len(sys.argv) > 1
+        else ROOT / exp_config["database_path"]
+    )
     if not db_path.exists():
         raise SystemExit(f"database does not exist: {db_path}")
 
@@ -82,6 +86,14 @@ def main() -> None:
     print(f"experiment_runs: {scalar(conn, 'SELECT COUNT(*) FROM experiment_runs')}")
     print(f"simulation_results: {scalar(conn, 'SELECT COUNT(*) FROM simulation_results')}")
     print(f"run_metrics: {scalar(conn, 'SELECT COUNT(*) FROM run_metrics')}")
+    print(f"tasks: {scalar(conn, 'SELECT COUNT(*) FROM tasks')}")
+    print(f"run_task_events: {scalar(conn, 'SELECT COUNT(*) FROM run_task_events')}")
+    print(f"run_task_outcomes: {scalar(conn, 'SELECT COUNT(*) FROM run_task_outcomes')}")
+    print(f"run_agent_decisions: {scalar(conn, 'SELECT COUNT(*) FROM run_agent_decisions')}")
+    print(
+        "run_gym_episode_summaries: "
+        f"{scalar(conn, 'SELECT COUNT(*) FROM run_gym_episode_summaries')}"
+    )
     print(f"schema_version: {scalar(conn, 'SELECT MAX(version) FROM schema_versions')}")
     print("")
     print("datasets_metadata:")

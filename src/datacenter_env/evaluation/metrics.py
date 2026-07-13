@@ -6,6 +6,7 @@ import pandas as pd
 
 from datacenter_env.config import DataCenterSystemConfig
 from datacenter_env.contracts import StepResult
+from datacenter_env.contracts.tasks import TaskOutcome, TaskStatus
 from datacenter_env.evaluation.records import step_to_record
 
 
@@ -23,7 +24,9 @@ class MetricAggregator:
     def frame(self) -> pd.DataFrame:
         return pd.DataFrame(step_to_record(step, self.config) for step in self._steps)
 
-    def summarize(self) -> dict[str, float]:
+    def summarize(
+        self, task_outcomes: tuple[TaskOutcome, ...] = ()
+    ) -> dict[str, float | None]:
         frame = self.frame()
         if frame.empty:
             return {}
@@ -154,7 +157,78 @@ class MetricAggregator:
             "invalid_value_count": float(frame["invalid_value_count"].sum()),
             "negative_power_count": float(frame["negative_power_count"].sum()),
         }
+        if self.config.workload_mode == "task_queue":
+            metrics.update(self._task_metrics(frame, task_outcomes))
         return metrics
+
+    def _task_metrics(
+        self, frame: pd.DataFrame, outcomes: tuple[TaskOutcome, ...]
+    ) -> dict[str, float | None]:
+        completed_statuses = {TaskStatus.COMPLETED, TaskStatus.SLA_VIOLATED}
+        completed = tuple(item for item in outcomes if item.final_status in completed_statuses)
+        unfinished = tuple(
+            item for item in outcomes if item.final_status in {TaskStatus.WAITING, TaskStatus.RUNNING}
+        )
+        violated = tuple(item for item in completed if item.sla_violated)
+        lateness = [float(item.lateness_minutes or 0.0) for item in completed]
+        waits = [float(item.wait_steps) for item in completed]
+        deferrals = [float(item.deferral_count) for item in outcomes]
+        resource_blocks = [float(item.resource_blocked_count) for item in outcomes]
+        completed_ids = {item.task_id for item in completed}
+        duration_by_id = {
+            task.task_id: task.duration_steps
+            for step in self._steps
+            if step.tasking is not None
+            for task in step.tasking.arrived_tasks
+        }
+        completed_count = len(completed)
+        hours = len(frame) * self.config.step_hours
+        cost = float(frame["energy_cost_step"].sum())
+        carbon = float(frame["carbon_kg_step"].sum())
+        grid = float(frame["grid_energy_kwh"].sum())
+        return {
+            "tasks_arrived": float(len(outcomes)),
+            "tasks_started": float(sum(item.first_start_time is not None for item in outcomes)),
+            "tasks_completed": float(completed_count),
+            "tasks_unschedulable": float(
+                sum(item.final_status is TaskStatus.UNSCHEDULABLE for item in outcomes)
+            ),
+            "tasks_unfinished": float(len(unfinished)),
+            "sla_violation_count": float(len(violated)),
+            "sla_violation_rate": (
+                float(len(violated) / completed_count) if completed_count else 0.0
+            ),
+            "peak_at_risk_task_count": float(frame["at_risk_task_count"].max()),
+            "mean_lateness_minutes": float(pd.Series(lateness).mean()) if lateness else 0.0,
+            "max_lateness_minutes": max(lateness, default=0.0),
+            "mean_wait_steps": float(pd.Series(waits).mean()) if waits else 0.0,
+            "max_wait_steps": max(waits, default=0.0),
+            "p95_wait_steps": float(pd.Series(waits).quantile(0.95)) if waits else 0.0,
+            "total_deferrals": float(sum(deferrals)),
+            "mean_deferrals": float(pd.Series(deferrals).mean()) if deferrals else 0.0,
+            "total_resource_blocked": float(sum(resource_blocks)),
+            "mean_resource_blocked": (
+                float(pd.Series(resource_blocks).mean()) if resource_blocks else 0.0
+            ),
+            "completed_per_hour": float(completed_count / hours) if hours else 0.0,
+            "completed_task_steps": float(
+                sum(duration_by_id.get(task_id, 0) for task_id in completed_ids)
+            ),
+            "mean_cpu_utilization": float(frame["cpu_utilization"].mean()),
+            "peak_cpu_utilization": float(frame["cpu_utilization"].max()),
+            "mean_gpu_utilization": float(frame["gpu_utilization"].mean()),
+            "peak_gpu_utilization": float(frame["gpu_utilization"].max()),
+            "mean_memory_utilization": float(frame["memory_utilization"].mean()),
+            "peak_memory_utilization": float(frame["memory_utilization"].max()),
+            "mean_queue_length": float(frame["waiting_task_count"].mean()),
+            "max_queue_length": float(frame["waiting_task_count"].max()),
+            "mean_running_tasks": float(frame["running_task_count"].mean()),
+            "cost_per_completed_task": cost / completed_count if completed_count else None,
+            "carbon_per_completed_task_kg": carbon / completed_count if completed_count else None,
+            "grid_energy_per_completed_task_kwh": (
+                grid / completed_count if completed_count else None
+            ),
+        }
 
     @staticmethod
     def _successful_mean(frame: pd.DataFrame, successful: pd.Series, column: str) -> float:

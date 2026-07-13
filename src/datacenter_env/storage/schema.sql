@@ -40,6 +40,16 @@ CREATE TABLE IF NOT EXISTS experiment_runs (
     scenario TEXT NOT NULL,
     controller_name TEXT,
     condition_name TEXT,
+    scheduler_name TEXT,
+    cooling_controller_name TEXT,
+    task_dataset_id TEXT,
+    interface_type TEXT,
+    environment_id TEXT,
+    reward_config_json TEXT,
+    observation_config_json TEXT,
+    invalid_action_policy TEXT,
+    candidate_order TEXT,
+    episode_seed INTEGER,
     actuator_mode TEXT,
     mismatch_scenario TEXT,
     measurement_mode TEXT,
@@ -146,6 +156,14 @@ CREATE TABLE IF NOT EXISTS simulation_results (
     objective_control_movement REAL,
     invalid_value_count INTEGER,
     negative_power_count INTEGER,
+    workload_mode TEXT,
+    cpu_utilization REAL,
+    gpu_utilization REAL,
+    memory_utilization REAL,
+    waiting_task_count INTEGER,
+    running_task_count INTEGER,
+    completed_task_count INTEGER,
+    at_risk_task_count INTEGER,
     PRIMARY KEY (run_id, step_index),
     FOREIGN KEY (run_id) REFERENCES experiment_runs(id) ON DELETE CASCADE
 );
@@ -171,6 +189,75 @@ CREATE TABLE IF NOT EXISTS run_input_timeseries (
     FOREIGN KEY (run_id) REFERENCES experiment_runs(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS tasks (
+    dataset_id INTEGER NOT NULL,
+    task_id TEXT NOT NULL,
+    arrival_time TEXT NOT NULL,
+    duration_steps INTEGER NOT NULL,
+    cpu_cores REAL NOT NULL,
+    gpu_units REAL NOT NULL,
+    memory_gb REAL NOT NULL,
+    deadline_time TEXT NOT NULL,
+    priority INTEGER NOT NULL,
+    "deferrable" INTEGER NOT NULL,
+    PRIMARY KEY (dataset_id, task_id),
+    FOREIGN KEY (dataset_id) REFERENCES datasets(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS run_task_events (
+    run_id INTEGER NOT NULL,
+    step_index INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    task_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    details_json TEXT,
+    FOREIGN KEY (run_id) REFERENCES experiment_runs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS run_task_outcomes (
+    run_id INTEGER NOT NULL,
+    task_id TEXT NOT NULL,
+    final_status TEXT NOT NULL,
+    first_start_time TEXT,
+    completion_time TEXT,
+    wait_steps INTEGER NOT NULL,
+    deferral_count INTEGER NOT NULL,
+    sla_violated INTEGER NOT NULL,
+    lateness_minutes REAL,
+    resource_blocked_count INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (run_id, task_id),
+    FOREIGN KEY (run_id) REFERENCES experiment_runs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS run_agent_decisions (
+    run_id INTEGER NOT NULL,
+    decision_step_index INTEGER NOT NULL,
+    simulation_step_index INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    candidate_task_id TEXT,
+    action INTEGER NOT NULL,
+    action_legal INTEGER NOT NULL,
+    action_mask_json TEXT NOT NULL,
+    decision_reward REAL NOT NULL,
+    simulation_reward REAL NOT NULL,
+    total_reward REAL NOT NULL,
+    reward_components_json TEXT NOT NULL,
+    PRIMARY KEY (run_id, decision_step_index),
+    FOREIGN KEY (run_id) REFERENCES experiment_runs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS run_gym_episode_summaries (
+    run_id INTEGER PRIMARY KEY,
+    episode_reward REAL NOT NULL,
+    decision_steps INTEGER NOT NULL,
+    simulation_steps INTEGER NOT NULL,
+    invalid_actions INTEGER NOT NULL,
+    terminated INTEGER NOT NULL,
+    truncated INTEGER NOT NULL,
+    summary_json TEXT NOT NULL,
+    FOREIGN KEY (run_id) REFERENCES experiment_runs(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS schema_versions (
     version INTEGER PRIMARY KEY,
     applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -181,3 +268,9 @@ CREATE INDEX IF NOT EXISTS idx_input_timeseries_timestamp
 
 CREATE INDEX IF NOT EXISTS idx_simulation_results_timestamp
     ON simulation_results(timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_run_task_events_task
+    ON run_task_events(run_id, task_id, timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_run_agent_decisions_step
+    ON run_agent_decisions(run_id, simulation_step_index, decision_step_index);

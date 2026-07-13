@@ -1,0 +1,31 @@
+dataset_name: synthetic_single_center_tasks_24h_v1
+seed: 2026
+start_timestamp: 2026-01-01T00:00:00
+timezone: Asia/Shanghai
+steps: 96
+time_step_minutes: 15
+base_arrival_rate: 1.4
+peak_arrival_rate: 3.2
+gpu_task_fraction: 0.38
+nondeferrable_fraction: 0.30
+output_csv: data/tasks/single_center_tasks_24h.csv
+database_path: data/db/task_scheduling.sqlite
+capacity:
+  total_cpu_cores: 1000
+  total_gpu_units: 100
+  total_memory_gb: 4096
+load_aggregation:
+  mode: weighted_sum
+  cpu_weight: 0.45
+  gpu_weight: 0.45
+  memory_weight: 0.10
+scheduler:
+  forecast_steps: 8
+  price_weight: 0.45
+  carbon_weight: 0.35
+  renewable_weight: 0.20
+  price_scale: 1.10
+  carbon_scale: 0.80
+  renewable_scale_kw: 220.0
+tasks:
+  unschedulable_policy: record

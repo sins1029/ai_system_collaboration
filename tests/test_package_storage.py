@@ -112,4 +112,4 @@ class PackageStorageTest(unittest.TestCase):
         connection.close()
         self.assertIn("status", columns)
         self.assertIn("package_version", columns)
-        self.assertEqual(version, 2)
+        self.assertEqual(version, 4)

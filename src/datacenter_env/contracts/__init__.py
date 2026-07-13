@@ -1,9 +1,15 @@
 from datacenter_env.contracts.actions import DataCenterAction
 from datacenter_env.contracts.inputs import ExogenousInput, ForecastWindow
 from datacenter_env.contracts.observations import DataCenterObservation
-from datacenter_env.contracts.protocols import DataCenterController, RunStore
+from datacenter_env.contracts.protocols import (
+    DataCenterController,
+    RunStore,
+    TaskArrivalProvider,
+    TaskScheduler,
+)
 from datacenter_env.contracts.results import (
     AccountingResult,
+    AgentDecisionRecord,
     ControllerDecision,
     ControllerResult,
     DiagnosticResult,
@@ -13,9 +19,27 @@ from datacenter_env.contracts.results import (
     RunSummary,
     StepResult,
 )
+from datacenter_env.contracts.tasks import (
+    EnvironmentalView,
+    ResourceAvailability,
+    ResourceCapacity,
+    ResourceUsage,
+    RunningTaskView,
+    TaskArrivalBatch,
+    TaskEvent,
+    TaskEventType,
+    TaskOutcome,
+    TaskSchedulingDecision,
+    TaskSchedulingObservation,
+    TaskSpec,
+    TaskStatus,
+    TaskStepResult,
+    TaskView,
+)
 
 __all__ = [
     "AccountingResult",
+    "AgentDecisionRecord",
     "ControllerDecision",
     "ControllerResult",
     "DataCenterAction",
@@ -30,4 +54,21 @@ __all__ = [
     "RunStore",
     "RunSummary",
     "StepResult",
+    "EnvironmentalView",
+    "ResourceAvailability",
+    "ResourceCapacity",
+    "ResourceUsage",
+    "RunningTaskView",
+    "TaskArrivalBatch",
+    "TaskArrivalProvider",
+    "TaskEvent",
+    "TaskEventType",
+    "TaskOutcome",
+    "TaskScheduler",
+    "TaskSchedulingDecision",
+    "TaskSchedulingObservation",
+    "TaskSpec",
+    "TaskStatus",
+    "TaskStepResult",
+    "TaskView",
 ]

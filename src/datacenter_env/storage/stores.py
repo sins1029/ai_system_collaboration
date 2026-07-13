@@ -7,6 +7,7 @@ from typing import Any
 
 from datacenter_env.config import DataCenterSystemConfig
 from datacenter_env.contracts import (
+    AgentDecisionRecord,
     ExogenousInput,
     RunHandle,
     RunMetadata,
@@ -43,6 +44,27 @@ class NullRunStore:
 
     def append_step(self, run_id: int | None, step_result: StepResult) -> None:
         del step_result
+        self._require_running(run_id)
+
+    def append_transition(
+        self,
+        run_id: int | None,
+        external_input: ExogenousInput,
+        step_result: StepResult,
+    ) -> None:
+        del external_input, step_result
+        self._require_running(run_id)
+
+    def append_agent_decision(
+        self, run_id: int | None, decision: AgentDecisionRecord
+    ) -> None:
+        del decision
+        self._require_running(run_id)
+
+    def append_gym_episode_summary(
+        self, run_id: int | None, summary: dict[str, object]
+    ) -> None:
+        del summary
         self._require_running(run_id)
 
     def finish_run(self, run_id: int | None, summary: RunSummary) -> None:
@@ -83,6 +105,9 @@ class SQLiteRunStore:
                 self._connection = connect(self.path)
             initialize_database(self._connection)
         except Exception as error:
+            if self._connection is not None:
+                self._connection.close()
+                self._connection = None
             raise StorageError(f"failed to initialize SQLite store: {error}") from error
 
     def create_run(self, metadata: RunMetadata) -> RunHandle:
@@ -94,17 +119,30 @@ class SQLiteRunStore:
             cursor = connection.execute(
                 """
                 INSERT INTO experiment_runs(
-                    name, scenario, controller_name, condition_name, actuator_mode,
+                    name, scenario, controller_name, condition_name, scheduler_name,
+                    cooling_controller_name, task_dataset_id, interface_type,
+                    environment_id, reward_config_json, observation_config_json,
+                    invalid_action_policy, candidate_order, episode_seed, actuator_mode,
                     mismatch_scenario, measurement_mode, dataset_id, seed, config_json,
                     scenario_config_json, plant_config_json, prediction_config_json,
                     package_version, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'running')
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'running')
                 """,
                 (
                     metadata.name,
                     metadata.controller_name,
                     metadata.controller_name,
                     metadata.condition_name,
+                    metadata.scheduler_name,
+                    metadata.cooling_controller_name,
+                    metadata.task_dataset_id,
+                    metadata.interface_type,
+                    metadata.environment_id,
+                    json.dumps(dict(metadata.reward_config or {}), sort_keys=True),
+                    json.dumps(dict(metadata.observation_config or {}), sort_keys=True),
+                    metadata.invalid_action_policy,
+                    metadata.candidate_order,
+                    metadata.episode_seed,
                     str(config.actuator["mode"]) if config else None,
                     config.mismatch_scenario if config else None,
                     str(config.measurement["mode"]) if config else None,
@@ -171,6 +209,154 @@ class SQLiteRunStore:
         except Exception as error:
             raise StorageError(f"failed to append simulation step: {error}") from error
 
+    def append_transition(
+        self,
+        run_id: int | None,
+        external_input: ExogenousInput,
+        step_result: StepResult,
+    ) -> None:
+        run = self._require_running(run_id)
+        original_index = self._step_indices[run]
+        original_commit = self.commit_each_step
+        try:
+            self.connection.execute("SAVEPOINT task_step")
+            self.commit_each_step = False
+            self.append_input(run, external_input)
+            self.append_step(run, step_result)
+            if step_result.tasking is not None:
+                dataset_id = int(
+                    self.connection.execute(
+                        "SELECT dataset_id FROM experiment_runs WHERE id = ?", (run,)
+                    ).fetchone()[0]
+                )
+                self.connection.executemany(
+                    """
+                    INSERT INTO tasks(
+                        dataset_id, task_id, arrival_time, duration_steps, cpu_cores,
+                        gpu_units, memory_gb, deadline_time, priority, "deferrable"
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(dataset_id, task_id) DO NOTHING
+                    """,
+                    [
+                        (
+                            dataset_id,
+                            task.task_id,
+                            task.arrival_time.isoformat(sep=" "),
+                            task.duration_steps,
+                            task.cpu_cores,
+                            task.gpu_units,
+                            task.memory_gb,
+                            task.deadline_time.isoformat(sep=" "),
+                            task.priority,
+                            int(task.deferrable),
+                        )
+                        for task in step_result.tasking.arrived_tasks
+                    ],
+                )
+                self.connection.executemany(
+                    """
+                    INSERT INTO run_task_events(
+                        run_id, step_index, timestamp, task_id, event_type, details_json
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    [
+                        (
+                            run,
+                            original_index,
+                            event.timestamp.isoformat(sep=" "),
+                            event.task_id,
+                            event.event_type.value,
+                            json.dumps(dict(event.details), ensure_ascii=False, sort_keys=True)
+                            if event.details is not None
+                            else None,
+                        )
+                        for event in step_result.tasking.events
+                    ],
+                )
+            self.connection.execute("RELEASE SAVEPOINT task_step")
+            if original_commit:
+                self.connection.commit()
+        except Exception as error:
+            self._step_indices[run] = original_index
+            try:
+                self.connection.execute("ROLLBACK TO SAVEPOINT task_step")
+                self.connection.execute("RELEASE SAVEPOINT task_step")
+            except sqlite3.Error:
+                self.connection.rollback()
+            raise StorageError(f"failed to append atomic simulation step: {error}") from error
+        finally:
+            self.commit_each_step = original_commit
+
+    def append_agent_decision(
+        self, run_id: int | None, decision: AgentDecisionRecord
+    ) -> None:
+        run = self._require_running(run_id)
+        try:
+            self.connection.execute(
+                """
+                INSERT INTO run_agent_decisions(
+                    run_id, decision_step_index, simulation_step_index, timestamp,
+                    candidate_task_id, action, action_legal, action_mask_json,
+                    decision_reward, simulation_reward, total_reward,
+                    reward_components_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    run,
+                    decision.decision_step_index,
+                    decision.simulation_step_index,
+                    decision.timestamp.isoformat(sep=" "),
+                    decision.candidate_task_id,
+                    decision.action,
+                    int(decision.action_legal),
+                    json.dumps(list(decision.action_mask)),
+                    decision.decision_reward,
+                    decision.simulation_reward,
+                    decision.total_reward,
+                    json.dumps(dict(decision.reward_components), sort_keys=True),
+                ),
+            )
+            if self.commit_each_step:
+                self.connection.commit()
+        except Exception as error:
+            raise StorageError(f"failed to append agent decision: {error}") from error
+
+    def append_gym_episode_summary(
+        self, run_id: int | None, summary: dict[str, object]
+    ) -> None:
+        run = self._require_running(run_id)
+        try:
+            self.connection.execute(
+                """
+                INSERT INTO run_gym_episode_summaries(
+                    run_id, episode_reward, decision_steps, simulation_steps,
+                    invalid_actions, terminated, truncated, summary_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(run_id) DO UPDATE SET
+                    episode_reward = excluded.episode_reward,
+                    decision_steps = excluded.decision_steps,
+                    simulation_steps = excluded.simulation_steps,
+                    invalid_actions = excluded.invalid_actions,
+                    terminated = excluded.terminated,
+                    truncated = excluded.truncated,
+                    summary_json = excluded.summary_json
+                """,
+                (
+                    run,
+                    float(summary["episode_reward"]),
+                    int(summary["decision_steps"]),
+                    int(summary["simulation_steps"]),
+                    int(summary["invalid_actions"]),
+                    int(bool(summary.get("terminated", False))),
+                    int(bool(summary.get("truncated", False))),
+                    json.dumps(summary, sort_keys=True),
+                ),
+            )
+            if self.commit_each_step:
+                self.connection.commit()
+        except Exception as error:
+            raise StorageError(f"failed to append Gym episode summary: {error}") from error
+
     def finish_run(self, run_id: int | None, summary: RunSummary) -> None:
         run = self._require_running(run_id)
         try:
@@ -179,7 +365,48 @@ class SQLiteRunStore:
                 INSERT INTO run_metrics(run_id, metric, value) VALUES (?, ?, ?)
                 ON CONFLICT(run_id, metric) DO UPDATE SET value = excluded.value
                 """,
-                [(run, key, float(value)) for key, value in summary.metrics.items()],
+                [
+                    (run, key, float(value))
+                    for key, value in summary.metrics.items()
+                    if value is not None
+                ],
+            )
+            self.connection.executemany(
+                """
+                INSERT INTO run_task_outcomes(
+                    run_id, task_id, final_status, first_start_time, completion_time,
+                    wait_steps, deferral_count, sla_violated, lateness_minutes,
+                    resource_blocked_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(run_id, task_id) DO UPDATE SET
+                    final_status = excluded.final_status,
+                    first_start_time = excluded.first_start_time,
+                    completion_time = excluded.completion_time,
+                    wait_steps = excluded.wait_steps,
+                    deferral_count = excluded.deferral_count,
+                    sla_violated = excluded.sla_violated,
+                    lateness_minutes = excluded.lateness_minutes,
+                    resource_blocked_count = excluded.resource_blocked_count
+                """,
+                [
+                    (
+                        run,
+                        outcome.task_id,
+                        outcome.final_status.value,
+                        outcome.first_start_time.isoformat(sep=" ")
+                        if outcome.first_start_time
+                        else None,
+                        outcome.completion_time.isoformat(sep=" ")
+                        if outcome.completion_time
+                        else None,
+                        outcome.wait_steps,
+                        outcome.deferral_count,
+                        int(outcome.sla_violated),
+                        outcome.lateness_minutes,
+                        outcome.resource_blocked_count,
+                    )
+                    for outcome in summary.task_outcomes
+                ],
             )
             self.connection.execute(
                 """
@@ -193,8 +420,7 @@ class SQLiteRunStore:
         except Exception as error:
             self.connection.rollback()
             raise StorageError(f"failed to finish run: {error}") from error
-        finally:
-            self._step_indices.pop(run, None)
+        self._step_indices.pop(run, None)
 
     def fail_run(self, run_id: int | None, error: Exception) -> None:
         run = self._require_running(run_id)
@@ -221,16 +447,32 @@ class SQLiteRunStore:
 
     def _ensure_dataset(self, metadata: RunMetadata) -> int:
         connection = self.connection
+        details = dict(metadata.dataset_metadata or {})
         connection.execute(
             """
-            INSERT INTO datasets(name, source_path, time_step_minutes, signal_source, metadata_json)
-            VALUES (?, ?, ?, 'external-provider', '{}')
-            ON CONFLICT(name) DO UPDATE SET source_path = excluded.source_path
+            INSERT INTO datasets(
+                name, source_path, time_step_minutes, signal_source, metadata_json,
+                random_seed, timezone, start_timestamp, end_timestamp, number_of_steps
+            ) VALUES (?, ?, ?, 'external-provider', ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(name) DO UPDATE SET
+                source_path = excluded.source_path,
+                metadata_json = excluded.metadata_json,
+                random_seed = excluded.random_seed,
+                timezone = excluded.timezone,
+                start_timestamp = excluded.start_timestamp,
+                end_timestamp = excluded.end_timestamp,
+                number_of_steps = excluded.number_of_steps
             """,
             (
                 metadata.dataset_name,
                 metadata.source_path,
                 self._config.step_minutes if self._config else 0,
+                json.dumps(details, ensure_ascii=False, sort_keys=True, default=str),
+                details.get("seed", metadata.seed),
+                details.get("timezone"),
+                details.get("start_timestamp"),
+                details.get("end_timestamp"),
+                details.get("number_of_steps"),
             ),
         )
         row = connection.execute(
@@ -286,4 +528,7 @@ class SQLiteRunStore:
             "objective_total", "objective_energy_cost", "objective_carbon",
             "objective_temperature", "objective_control_movement", "invalid_value_count",
             "negative_power_count",
+            "workload_mode", "cpu_utilization", "gpu_utilization",
+            "memory_utilization", "waiting_task_count", "running_task_count",
+            "completed_task_count", "at_risk_task_count",
         ]

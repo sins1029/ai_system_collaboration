@@ -7,7 +7,8 @@ cooling control, thermal safety, actuator dynamics, measurement, controller-side
 prediction, energy accounting, diagnostics, run metrics, and optional SQLite
 persistence. It does not generate or download external signals, select an
 experiment timeline, coordinate multiple data centers, expose a web service, or
-implement Gymnasium.
+implement Gymnasium. It does own the internal single-center task queue,
+resource accounting, task SLA evaluation and scheduler protocol.
 
 ## Package Layout
 
@@ -24,6 +25,7 @@ src/datacenter_env/
 |   |-- observations.py
 |   |-- protocols.py
 |   `-- results.py
+|   `-- tasks.py
 |-- core/
 |   |-- actuator.py
 |   |-- environment.py
@@ -39,6 +41,21 @@ src/datacenter_env/
 |-- evaluation/
 |   |-- metrics.py
 |   `-- records.py
+|-- tasking/
+|   |-- aggregation.py
+|   |-- resources.py
+|   |-- runtime.py
+|   `-- schedulers.py
+|-- gym/
+|   |-- action.py
+|   |-- adapters.py
+|   |-- config.py
+|   |-- environment.py
+|   |-- masks.py
+|   |-- observation.py
+|   |-- policies.py
+|   |-- registration.py
+|   `-- rewards.py
 |-- storage/
 |   |-- database.py
 |   |-- schema.sql
@@ -54,7 +71,11 @@ The package root exposes `DataCenterSystem`, `DataCenterEnvironment`,
 `DataCenterSystemConfig`, `ExogenousInput`, `ForecastWindow`,
 `DataCenterAction`, `DataCenterObservation`, `StepResult`, `RunMetadata`,
 `RunSummary`, `SQLiteRunStore`, `NullRunStore`, `run_single_center`, and
-`__version__`. Internal plant, actuator, and controller implementation classes
+`TaskSpec`, `TaskArrivalBatch`, `TaskStatus`, `TaskSchedulingDecision`,
+`TaskSchedulingObservation`, `TaskStepResult`, `TaskEvent`, `TaskScheduler`, and
+`SingleCenterTaskSchedulingEnv`, its three configuration/reward objects,
+`MaskedRandomPolicy`, `register_gym_environments`, and `__version__`. Internal
+plant, actuator, controller, encoder and adapter implementation classes
 are intentionally not re-exported.
 
 ## External Signal Boundary
@@ -137,13 +158,22 @@ Each system owns its controller, metric aggregator, run handle, and store.
 `reset(seed)` rebuilds stateful components. No mutable runtime singleton is
 used, so resetting one instance cannot affect another.
 
-## Future Task Scheduling
+## Task Scheduling
 
-`DataCenterAction` currently contains only `cooling_target_kw`. Future task
-scheduling can add a separate scheduling contract for admitted/deferred tasks
-and resource allocation, then compose it ahead of the current environment.
-The plant and external-action interface do not need to be rewritten for that
-extension.
+`DataCenterAction` composes an optional task scheduling decision with the
+cooling target. The `legacy_aggregate` mode leaves it empty. In `task_queue`
+mode, arrivals are ingested before scheduling, running resource usage is
+aggregated into the plant workload, and tasks advance after the physical step.
+Generation and complete task timelines remain in `external_workloads/`. See
+`task_runtime_architecture.md` for the detailed contract.
+
+## Gymnasium Adapter
+
+The Gym layer owns fixed numeric encoding, sequential binary interaction,
+action masks, reward composition and episode boundaries. It accumulates binary
+decisions and calls `DataCenterSystem.step_with_task_decision()` once per
+physical interval. Provider factories remain external and are rebuilt on every
+reset. See `gymnasium_environment.md` for the complete interface.
 
 ## Compatibility
 

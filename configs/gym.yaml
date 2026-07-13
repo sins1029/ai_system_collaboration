@@ -1,0 +1,35 @@
+gym:
+  environment_id: DataCenterTaskScheduling-v0
+  interaction_mode: sequential_task_decision
+  candidate_order: edf
+  invalid_action_policy: penalize_and_noop
+  max_simulation_steps: 96
+  auto_advance_empty_steps: true
+observation:
+  max_wait_steps: 96
+  max_queue_length: 512
+  max_duration_steps: 16
+  max_priority: 10
+  max_slack_steps: 96
+  price_scale: 1.5
+  carbon_scale: 1.0
+  outdoor_temperature_min_c: -20
+  outdoor_temperature_max_c: 50
+  measured_temperature_min_c: 0
+  measured_temperature_max_c: 50
+  renewable_power_scale_kw: 500
+  grid_power_scale_kw: 1000
+reward:
+  completion_weight: 1.0
+  energy_cost_weight: 0.20
+  carbon_weight: 0.10
+  waiting_weight: 0.05
+  queue_length_weight: 0.02
+  sla_violation_weight: 5.0
+  invalid_action_weight: 1.0
+  unfinished_weight: 2.0
+  temperature_violation_weight: 5.0
+  task_start_weight: 0.0
+  reference_cost_per_step: 20.0
+  reference_carbon_per_step: 20.0
+  reference_queue_length: 10.0

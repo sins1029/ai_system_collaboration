@@ -7,10 +7,27 @@ from datacenter_env.contracts import (
     RunMetadata,
     RunSummary,
     StepResult,
+    TaskArrivalBatch,
+    TaskEvent,
+    TaskScheduler,
+    TaskSchedulingDecision,
+    TaskSchedulingObservation,
+    TaskSpec,
+    TaskStatus,
+    TaskStepResult,
 )
 from datacenter_env.core import DataCenterEnvironment
 from datacenter_env.runtime import DataCenterSystem, run_single_center
 from datacenter_env.storage import NullRunStore, SQLiteRunStore
+from datacenter_env.gym import (
+    CompositeTaskSchedulingReward,
+    GymEnvironmentConfig,
+    MaskedRandomPolicy,
+    ObservationConfig,
+    RewardConfig,
+    SingleCenterTaskSchedulingEnv,
+    register_gym_environments,
+)
 
 __all__ = [
     "DataCenterAction",
@@ -26,4 +43,19 @@ __all__ = [
     "SQLiteRunStore",
     "StepResult",
     "run_single_center",
+    "CompositeTaskSchedulingReward",
+    "GymEnvironmentConfig",
+    "MaskedRandomPolicy",
+    "ObservationConfig",
+    "RewardConfig",
+    "SingleCenterTaskSchedulingEnv",
+    "register_gym_environments",
+    "TaskArrivalBatch",
+    "TaskEvent",
+    "TaskScheduler",
+    "TaskSchedulingDecision",
+    "TaskSchedulingObservation",
+    "TaskSpec",
+    "TaskStatus",
+    "TaskStepResult",
 ]

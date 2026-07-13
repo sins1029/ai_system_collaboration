@@ -46,6 +46,12 @@ class DataCenterSystemConfig:
     measurement: Mapping[str, Any] | None = None
     mismatch_scenario: str = "perfect_model"
     database_path: str | None = None
+    workload: Mapping[str, Any] | None = None
+    capacity: Mapping[str, Any] | None = None
+    tasks: Mapping[str, Any] | None = None
+    scheduler: Mapping[str, Any] | None = None
+    cooling_controller: Mapping[str, Any] | None = None
+    load_aggregation: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if self.controller_name not in {"baseline", "heuristic", "finite_horizon"}:
@@ -70,6 +76,43 @@ class DataCenterSystemConfig:
             self,
             "measurement",
             _freeze(self.measurement or {"mode": "none", "temperature_noise_std_c": 0.0, "seed": 0}),
+        )
+        object.__setattr__(self, "workload", _freeze(self.workload or {"mode": "legacy_aggregate"}))
+        object.__setattr__(
+            self,
+            "capacity",
+            _freeze(
+                self.capacity
+                or {
+                    "total_cpu_cores": 1000.0,
+                    "total_gpu_units": 100.0,
+                    "total_memory_gb": 4096.0,
+                }
+            ),
+        )
+        object.__setattr__(
+            self, "tasks", _freeze(self.tasks or {"unschedulable_policy": "record"})
+        )
+        object.__setattr__(
+            self, "scheduler", _freeze(self.scheduler or {"name": "fifo_immediate"})
+        )
+        object.__setattr__(
+            self,
+            "cooling_controller",
+            _freeze(self.cooling_controller or {"name": self.controller_name}),
+        )
+        object.__setattr__(
+            self,
+            "load_aggregation",
+            _freeze(
+                self.load_aggregation
+                or {
+                    "mode": "weighted_sum",
+                    "cpu_weight": 0.45,
+                    "gpu_weight": 0.45,
+                    "memory_weight": 0.10,
+                }
+            ),
         )
         self._validate()
 
@@ -104,11 +147,29 @@ class DataCenterSystemConfig:
                 if config.get("database_path") is not None
                 else None
             ),
+            workload=config.get("workload"),
+            capacity=config.get("capacity"),
+            tasks=config.get("tasks"),
+            scheduler=config.get("scheduler"),
+            cooling_controller=config.get("cooling_controller"),
+            load_aggregation=config.get("load_aggregation"),
         )
 
     @property
     def step_hours(self) -> float:
         return self.step_minutes / 60.0
+
+    @property
+    def workload_mode(self) -> str:
+        return str(self.workload.get("mode", "legacy_aggregate"))
+
+    @property
+    def scheduler_name(self) -> str:
+        return str(self.scheduler.get("name", "fifo_immediate"))
+
+    @property
+    def cooling_controller_name(self) -> str:
+        return str(self.cooling_controller.get("name", self.controller_name))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -123,6 +184,12 @@ class DataCenterSystemConfig:
             "measurement": _thaw(self.measurement),
             "mismatch_scenario": self.mismatch_scenario,
             "database_path": self.database_path,
+            "workload": _thaw(self.workload),
+            "capacity": _thaw(self.capacity),
+            "tasks": _thaw(self.tasks),
+            "scheduler": _thaw(self.scheduler),
+            "cooling_controller": _thaw(self.cooling_controller),
+            "load_aggregation": _thaw(self.load_aggregation),
         }
 
     def _validate(self) -> None:
@@ -137,5 +204,26 @@ class DataCenterSystemConfig:
                 raise ConfigurationError("plant parameter scales must be positive")
             if min(float(value) for value in self.prediction_parameters.values()) <= 0:
                 raise ConfigurationError("prediction parameter scales must be positive")
+            if self.workload_mode not in {"legacy_aggregate", "task_queue"}:
+                raise ConfigurationError(f"unknown workload mode: {self.workload_mode}")
+            if self.cooling_controller_name != self.controller_name:
+                raise ConfigurationError(
+                    "cooling_controller.name must match the compatibility controller_name"
+                )
+            if self.scheduler_name not in {
+                "fifo_immediate",
+                "earliest_deadline_first",
+                "energy_aware_deferral",
+            }:
+                raise ConfigurationError(f"unknown task scheduler: {self.scheduler_name}")
+            if str(self.tasks.get("unschedulable_policy", "record")) not in {"record", "raise"}:
+                raise ConfigurationError("unschedulable_policy must be record or raise")
+            capacity_values = (
+                float(self.capacity["total_cpu_cores"]),
+                float(self.capacity["total_gpu_units"]),
+                float(self.capacity["total_memory_gb"]),
+            )
+            if min(capacity_values) <= 0:
+                raise ConfigurationError("task resource capacities must be positive")
         except KeyError as error:
             raise ConfigurationError(f"missing configuration field: {error}") from error
