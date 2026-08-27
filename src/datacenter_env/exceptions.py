@@ -1,5 +1,5 @@
 class DataCenterError(Exception):
-    """Base exception for the public package API."""
+    """公共包 API 的基础异常。"""
 
 
 class ConfigurationError(DataCenterError):

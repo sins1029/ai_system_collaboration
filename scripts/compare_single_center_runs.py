@@ -71,7 +71,7 @@ def latest_scenario_runs(conn: sqlite3.Connection) -> dict[str, int]:
 
 
 def latest_pair(conn: sqlite3.Connection) -> tuple[int, int]:
-    """Compatibility helper for older two-scenario tests and callers."""
+    """兼容旧双场景测试和调用方的辅助函数。"""
     optimized = conn.execute(
         "SELECT id, name, dataset_id FROM experiment_runs WHERE scenario = 'optimized' ORDER BY id DESC LIMIT 1"
     ).fetchone()

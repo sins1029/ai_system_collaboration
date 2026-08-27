@@ -107,7 +107,7 @@ class CoolingActuator:
     def predict_actuator_step(
         self, target_cooling_kw: float, state: ActuatorState
     ) -> ActuatorResult:
-        """Compatibility alias for side-effect-free actuator prediction."""
+        """无副作用执行器预测的兼容别名。"""
         return self.step(target_cooling_kw, state)
 
     def actuator_aware_target(

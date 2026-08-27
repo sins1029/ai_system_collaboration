@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 import subprocess
 from pathlib import Path
@@ -374,7 +375,9 @@ def insert_metrics(conn: sqlite3.Connection, run_id: int, metrics: dict[str, flo
 
 
 def current_git_commit(root: Path) -> str | None:
-    git = r"C:\Users\26550\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe"
+    git = shutil.which("git")
+    if git is None:
+        return None
     try:
         result = subprocess.run(
             [git, "rev-parse", "--short", "HEAD"],

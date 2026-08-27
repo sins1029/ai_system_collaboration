@@ -1,16 +1,22 @@
+"""运行项目受控 pytest 测试集。"""
+
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import subprocess
 import sys
-import unittest
 
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(root))
-    suite = unittest.defaultTestLoader.discover("tests")
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
-    raise SystemExit(0 if result.wasSuccessful() else 1)
+    command = [sys.executable, "-m", "pytest", "-q"]
+    env = os.environ.copy()
+    python_paths = [str(root), str(root / "src")]
+    if env.get("PYTHONPATH"):
+        python_paths.append(env["PYTHONPATH"])
+    env["PYTHONPATH"] = os.pathsep.join(python_paths)
+    raise SystemExit(subprocess.call(command, cwd=root, env=env))
 
 
 if __name__ == "__main__":

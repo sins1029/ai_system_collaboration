@@ -29,7 +29,7 @@ from datacenter_env.version import __version__
 
 
 class DataCenterSystem:
-    """Facade combining one environment, one controller, one store, and metrics."""
+    """组合环境、控制器、存储和指标的统一外观。"""
 
     def __init__(self, config: DataCenterSystemConfig, store: RunStore):
         self.config = config

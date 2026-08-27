@@ -1,0 +1,27 @@
+# 专家数据集冻结配置；默认训练集只能使用可部署预测变体。
+dataset:
+  variants:
+    - deployable_no_future          # 不使用未来到达
+    - deployable_baseline_forecast  # 仅使用历史窗口的因果预测
+    - oracle_upper_bound            # 只做上界评估，禁止进入主训练集
+  primary_variant: deployable_baseline_forecast
+  horizon: 4
+  episode_steps: 96             # 每回合 96 步，即 24 小时
+  seeds: [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010]
+  baseline_history_window: 16   # 历史预测窗口，16 步即 4 小时
+  real_windows:
+    normal_trace: "2023-08-01T05:00:00Z"
+    high_load_trace: "2023-01-31T17:00:00Z"
+  unseen_test_burst_multiplier: 1.5  # 测试集未见突发负载倍率
+  split:                        # 按随机种子互斥划分，避免轨迹泄漏
+    train_fraction: 0.6
+    validation_fraction: 0.2
+    test_fraction: 0.2
+  scenarios:
+    - normal_trace
+    - high_load_trace
+    - gpu_burst
+    - future_low_price
+    - capacity_release
+    - sla_conflict
+    - center_heterogeneity

@@ -1,0 +1,15 @@
+# Architecture A 默认在线策略训练配置；发布演示只加载检查点，不执行训练。
+behavior_cloning:
+  hidden_dim: 256
+  use_layer_norm: true
+  learning_rate: 0.0003
+  batch_size: 1024
+  epochs: 12
+  weight_decay: 0.00001
+  gradient_clip_norm: 5.0
+  seeds: [11, 22, 33]
+  device: cpu
+  selection_metric: validation_loss  # 按验证集损失选择检查点
+  canonical_dc_ids: [1, 2, 3, 4, 5] # 语义动作固定顺序
+  horizon: 4
+  class_weight_max: 10.0             # 类别权重上限

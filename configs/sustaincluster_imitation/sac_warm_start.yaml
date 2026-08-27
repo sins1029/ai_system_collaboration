@@ -1,0 +1,26 @@
+# 冻结的历史 SAC 暖启动配置。当前不作为默认路线继续训练，仅供结果复现。
+sac_warm_start:
+  seeds: [41, 42, 43]
+  total_environment_steps: 10000
+  training_episode_steps: 96
+  training_start: "2023-08-01T05:00:00Z"
+  evaluation_start: "2023-08-01T05:00:00Z"
+  evaluation_seed: 2201
+  evaluation_steps: 96
+  evaluation_points: [0, 1000, 2500, 5000, 7500, 10000]
+  hidden_dim: 256
+  use_layer_norm: true
+  replay_buffer_size: 128
+  max_tasks: 2048
+  batch_size: 8
+  warmup_steps: 128
+  update_frequency: 16
+  policy_update_frequency: 2
+  actor_learning_rate: 0.0003
+  critic_learning_rate: 0.0003
+  gamma: 0.99
+  alpha: 0.01
+  tau: 0.005
+  device: cpu
+  torch_threads: 4
+  canonical_dc_ids: [1, 2, 3, 4, 5]

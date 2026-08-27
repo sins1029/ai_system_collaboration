@@ -4,11 +4,13 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import pandas as pd
 
 from storage.database import (
     connect,
+    current_git_commit,
     create_run,
     initialize_database,
     insert_metrics,
@@ -18,6 +20,10 @@ from storage.database import (
 
 
 class DatabaseTest(unittest.TestCase):
+    def test_current_git_commit_handles_missing_git(self) -> None:
+        with patch("storage.database.shutil.which", return_value=None):
+            self.assertIsNone(current_git_commit(Path.cwd()))
+
     def test_database_round_trip_for_two_scenarios(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             conn = connect(Path(tmpdir) / "test.sqlite")

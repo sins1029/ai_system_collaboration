@@ -34,7 +34,7 @@ from datacenter_env.tasking import TaskRuntime
 
 
 class DataCenterEnvironment:
-    """Controller-independent single-step thermo-electric environment."""
+    """与控制器解耦的单步热电环境。"""
 
     def __init__(self, config: DataCenterSystemConfig):
         self.config = DataCenterSystemConfig.coerce(config)

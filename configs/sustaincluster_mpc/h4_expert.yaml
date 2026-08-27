@@ -1,0 +1,22 @@
+# Architecture A 默认离线专家：H=4 MPC 负责标注和基准评估。
+expert:
+  horizon: 4                    # 滚动时域步数；共覆盖 60 分钟
+  timestep_minutes: 15         # 环境时间粒度，单位：分钟
+  forecast_mode: no_future_arrivals  # 默认不使用 oracle 未来信息
+  allow_defer: true            # 允许动作 0 表示延后任务
+  solver: scipy_milp_highs     # SciPy MILP / HiGHS 后端
+  solver_time_limit_seconds: 20.0  # 单步求解上限，单位：秒
+  objective_weights:
+    electricity: 1.0           # 电费项权重
+    carbon: 1.0                # 碳排项权重
+    transmission: 1.0          # 跨中心传输成本权重
+    waiting_defer: 100.0       # 等待与延后惩罚权重
+    sla_risk: 10.0             # SLA 风险权重
+    terminal_backlog: 100.0    # 时域末端积压权重
+  power_model:
+    cpu_power_w_per_core: 6.0  # 每 CPU 核功率，单位：W
+    gpu_power_w_per_unit: 500.0  # 每 GPU 单元功率，单位：W
+    memory_power_w_per_gb: 2.5 # 每 GB 内存功率，单位：W
+  waiting_cost_per_step: 1.0   # 每等待一步的基础成本
+  terminal_backlog_base_cost: 1.0  # 末端积压基础成本
+  deterministic_tie_break_epsilon: 1.0e-9  # 确定性平局消解项

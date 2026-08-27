@@ -5,13 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "datacenter-env"
 version = "0.3.0"
-description = "Reusable single-data-center thermo-electric control environment"
+description = "数据中心热电耦合建模、MPC 专家与模仿学习调度研究平台"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.24",
     "pandas>=2.0",
     "gymnasium>=1.0,<2.0",
+    "scipy>=1.11",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+research = [
+    "torch>=2.7",
+    "pyarrow>=19",
+]
+test = [
+    "pytest>=8",
 ]
 
 [tool.setuptools]
@@ -23,3 +34,15 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "datacenter_env.storage" = ["schema.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "reports/sustaincluster_mpc"]
+norecursedirs = [
+    ".git",
+    ".venv*",
+    "artifacts",
+    "data",
+    "ppt",
+    "references/external_repos",
+    "tmp",
+]

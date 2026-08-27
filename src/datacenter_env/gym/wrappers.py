@@ -1,1 +1,1 @@
-"""Reserved for small Gymnasium-compatible wrappers in later versions."""
+"""为后续版本的小型 Gymnasium 兼容包装器预留。"""

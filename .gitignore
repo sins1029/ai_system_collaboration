@@ -22,6 +22,24 @@ dist/
 # Generated outputs
 results/*
 !results/.gitkeep
+tmp/
+ppt/
+data/processed/
+artifacts/*
+!artifacts/sustaincluster_imitation/
+artifacts/sustaincluster_imitation/*
+!artifacts/sustaincluster_imitation/README.md
+!artifacts/sustaincluster_imitation/bc_actor_seed_11.pt
+
+# 报告源文件保留，批量实验数据和渲染中间产物不进入 Git。
+reports/**/*.csv
+reports/**/*.json
+reports/**/*.parquet
+reports/**/*.pdf
+reports/**/*.tex
+reports/**/*.aux
+reports/**/*.log
+reports/sustaincluster_deployment/
 
 # Data policy: keep only small samples in Git.
 data/raw/
