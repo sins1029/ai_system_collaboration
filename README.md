@@ -41,7 +41,7 @@ flowchart TD
 - 因果历史预测、稳定特征编码、可行动作 mask。
 - BC 训练/检查点/在线推理，以及 BC → SAC actor 权重桥接。
 - 5–20 步 MPC/BC 无训练演示。
-- 140 项项目与 MPC 回归测试。
+- 当前参考环境通过 139 项测试，另有 1 项按设计跳过。
 - 中文使用、架构、开发和 Git 发布前审计文档。
 
 ## 尚未实现
@@ -64,27 +64,33 @@ flowchart TD
 
 ## 快速开始
 
+从 Git clone 开始，依次准备 Architecture A 真正需要的 SustainCluster、Python 环境和 workload：
+
 ```powershell
 git clone https://github.com/sins1029/ai_system_collaboration.git
 cd ai_system_collaboration
+
+# 默认只克隆 SustainCluster，并固定到已验证 commit
 powershell -ExecutionPolicy Bypass -File .\scripts\clone_reference_repos.ps1
+
+# 创建独立环境并安装主项目与 SustainCluster 依赖
 powershell -ExecutionPolicy Bypass -File .\scripts\setup_env.ps1 -PythonPath python
+
+# 从 SustainCluster 自带的受校验 ZIP 准备 workload
+.\.venv-sustain-cluster\Scripts\python.exe .\scripts\prepare_workload.py
+
+# 环境与数据校验
+.\.venv-sustain-cluster\Scripts\python.exe -m pip check
+.\.venv-sustain-cluster\Scripts\python.exe .\scripts\prepare_workload.py --check
 ```
 
-如果只准备 SustainCluster：
+`setup_env.ps1` 需要读取 SustainCluster 的依赖清单，因此先准备固定上游仓库，再创建 venv。默认流程不会下载其他四个研究参考仓库；如需完整研究参考集，显式运行：
 
 ```powershell
-git clone https://github.com/HewlettPackard/sustain-cluster.git .\references\external_repos\sustain-cluster
-git -C .\references\external_repos\sustain-cluster checkout 3f6ea95cb835b89ba50b0ef76d66d14b8037643e
+powershell -ExecutionPolicy Bypass -File .\scripts\clone_reference_repos.ps1 -AllReferences
 ```
 
-参考仓库位于其他位置时：
-
-```powershell
-$env:SUSTAINCLUSTER_ROOT = "D:\path\to\sustain-cluster"
-```
-
-路径优先级为 `--sustaincluster-root`、环境变量 `SUSTAINCLUSTER_ROOT`、项目内默认目录。
+SustainCluster 位于其他位置时，可设置 `SUSTAINCLUSTER_ROOT`。路径优先级为 `--sustaincluster-root`、环境变量和项目内默认目录。workload 的来源、SHA256、团队共享文件用法与许可边界见 [数据准备说明](docs/数据准备说明.md)。
 
 ## Demo
 
@@ -108,7 +114,7 @@ BC 运行 5 步闭环，只加载默认检查点、不训练：
 .\.venv-sustain-cluster\Scripts\python.exe .\scripts\run_tests.py
 ```
 
-根目录 `pytest` 仅收集 `tests/` 和 `reports/sustaincluster_mpc/`，不会进入外部仓库、数据、PPT 或模型产物目录。当前最终结果为 `140 passed`。
+根目录 `pytest` 仅收集 `tests/` 和 `reports/sustaincluster_mpc/`，不会进入外部仓库、数据、PPT 或模型产物目录。当前参考环境结果为 `139 passed, 1 skipped`；跳过项只检查未纳入 Git 的可选专家数据 `split_manifest.json` 是否隔离 oracle，不影响 clean clone 的 Demo 与回归测试。
 
 ## 项目目录
 
@@ -122,12 +128,12 @@ BC 运行 5 步闭环，只加载默认检查点、不训练：
 - `artifacts/sustaincluster_imitation/`：默认 seed 11 BC 检查点及说明。
 - `data/processed/`：本地专家数据，不进入 Git。
 - `src/datacenter_env/`：已有单中心热电环境，继续回归但不是多中心默认入口。
-- `references/external_repos/`：五个只读参考仓库，不进入本项目 Git。
+- `references/external_repos/`：SustainCluster 是核心运行依赖；其余四个仓库仅供研究参考，均不进入本项目 Git。
 
 ## 三人协作建议
 
-- 开发者 A，环境与优化：SustainCluster adapter、MPC、constraint、forecast。
-- 开发者 B，学习算法：expert dataset、BC、regularized RL、policy。
+- 开发者 A，环境与优化：SustainCluster integration、environment factory、adapter、MPC、constraint、forecast interface 与实现。
+- 开发者 B，学习算法：expert dataset、feature encoder、BC、regularized RL、policy，以及 forecast feature 的消费逻辑。
 - 开发者 C，实验与评价：runner、metrics、evaluation、plots、regression。
 
 `main` 保持可运行；每人使用短期 `feature/xxx` 分支，完成测试和 code review 后通过 PR 合入。三人都不要长期直接修改 `references/external_repos/sustain-cluster`。
@@ -142,13 +148,14 @@ BC 运行 5 步闭环，只加载默认检查点、不训练：
 ## 已知问题
 
 - 5 步 Demo 是发布烟测，不替代长时域实验。
-- seed 11 检查点是否随 Git 发布仍需人工确认许可与来源。
+- seed 11 检查点是本项目使用 `deployable_baseline_forecast` 专家数据训练的 BC 产物，不含第三方预训练模型权重；公开发布仍需结合 SustainCluster 与 workload 数据许可由项目负责人确认。
 - 上游 SustainCluster 未来版本可能改变内部字段或相对路径，升级前必须先跑契约测试。
 - 历史单中心和 SAC 复现代码仍保留，以保证可复现性；文档已明确其非默认地位。
 
 ## 文档
 
 - [使用说明](docs/使用说明.md)
+- [数据准备说明](docs/数据准备说明.md)
 - [架构说明](docs/架构说明.md)
 - [开发说明](docs/开发说明.md)
 - [发布候选总报告](reports/pre_git_release/release_candidate_report.md)
