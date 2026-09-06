@@ -1,0 +1,9 @@
+# No new package was installed for this stage.
+# Existing dependency reused as the open-source MILP solver interface:
+scipy==1.15.3
+
+# Solver: scipy.optimize.milp using the HiGHS backend bundled in the Windows wheel.
+# SciPy license: BSD-3-Clause.
+# HiGHS license: MIT.
+# Extra binary installation: none.
+# Installation command for this stage: none (SciPy was already present and frozen).

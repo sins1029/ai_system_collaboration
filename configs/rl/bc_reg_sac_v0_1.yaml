@@ -1,0 +1,67 @@
+# Architecture A 第一轮小规模判别实验，不用于正式长训练。
+bc_regularized_sac:
+  bc_checkpoint: artifacts/sustaincluster_imitation/bc_actor_seed_11.pt
+  expert_config: configs/sustaincluster_mpc/h4_expert.yaml
+  output_dir: reports/bc_reg_sac_v0_1/raw
+  checkpoint_dir: artifacts/bc_reg_sac_v0_1
+
+  training_seeds: [41, 42, 43]
+  training_start: "2023-08-01T05:00:00Z"
+  training_steps: 10000
+  episode_steps: 96
+  evaluation_points: [0, 1000, 2500, 5000, 7500, 10000]
+  evaluation_episodes:
+    - {seed: 2201, scenario: normal_trace, start: "2023-08-01T05:00:00Z"}
+    - {seed: 2202, scenario: high_load_trace, start: "2023-01-31T17:00:00Z"}
+    - {seed: 2203, scenario: normal_trace, start: "2023-08-01T05:00:00Z"}
+  evaluation_steps: 96
+
+  feature_dim: 233
+  action_dim: 6
+  canonical_dc_ids: [1, 2, 3, 4, 5]
+  hidden_dim: 256
+  use_layer_norm: true
+  replay_capacity: 128
+  max_tasks: 2048
+  batch_size: 8
+  learning_starts: 128
+  update_frequency: 16
+  # 历史实现实际每次 critic update 都更新 Actor；v0.1 保持相同实际 cadence。
+  actor_update_frequency: 1
+  target_update_frequency: 1
+  actor_learning_rate: 0.0003
+  critic_learning_rate: 0.0003
+  gamma: 0.99
+  alpha: 0.01
+  automatic_entropy_tuning: false
+  tau: 0.005
+  torch_threads: 4
+  device: cpu
+
+  # 0/1000/2500 均纳入设计审计；全矩阵使用预试后选定的 2500。
+  critic_warmup_candidates: [0, 1000, 2500]
+  behavior_reg_type: teacher_kl
+  # 先用 M1 记录的 SAC/KL 数量级校准；全矩阵初始候选为 0.1。
+  behavior_reg_weight_candidates: [0.0, 0.01, 0.1]
+
+  methods:
+    M0_BC_FIXED:
+      train: false
+      critic_warmup_steps: 0
+      behavior_reg_weight: 0.0
+    M1_VANILLA:
+      train: true
+      critic_warmup_steps: 0
+      behavior_reg_weight: 0.0
+    M2_WARMUP:
+      train: true
+      critic_warmup_steps: 2500
+      behavior_reg_weight: 0.0
+    M3_REGULARIZED:
+      train: true
+      critic_warmup_steps: 0
+      behavior_reg_weight: auto
+    M4_COMBINED:
+      train: true
+      critic_warmup_steps: 2500
+      behavior_reg_weight: auto

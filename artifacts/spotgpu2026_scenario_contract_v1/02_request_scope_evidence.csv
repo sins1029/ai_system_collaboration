@@ -1,0 +1,8 @@
+evidence_id,source_type,source,finding,supports,evidence_level
+E1,OFFICIAL_README,https://github.com/alibaba/clusterdata/blob/0d0f3f1efdbf1add6a7bcc63676eafbd1eb11f71/cluster-trace-v2026-spot-gpu/README.md,cpu_request: Number of CPU cores requested by the job (in vCPUs).,PER_JOB,DIRECT_OFFICIAL
+E2,OFFICIAL_README,https://github.com/alibaba/clusterdata/blob/0d0f3f1efdbf1add6a7bcc63676eafbd1eb11f71/cluster-trace-v2026-spot-gpu/README.md,gpu_request: Number of GPU requested by the job.,PER_JOB,DIRECT_OFFICIAL
+E3,OFFICIAL_README,https://github.com/alibaba/clusterdata/blob/0d0f3f1efdbf1add6a7bcc63676eafbd1eb11f71/cluster-trace-v2026-spot-gpu/README.md,worker_num: Number of instances requested by the job.,SEPARATE_FIELD_NOT_MULTIPLIER,DIRECT_OFFICIAL
+E4,OFFICIAL_REPOSITORY_TREE,https://api.github.com/repos/alibaba/clusterdata/contents/cluster-trace-v2026-spot-gpu,Only README.md and two CSVs; no adapter/example code.,NO_CONTRADICTING_CODE,OFFICIAL_API
+E5,OFFICIAL_ISSUE_SEARCH,https://github.com/alibaba/clusterdata/issues,No issue matched worker_num or spot-gpu at audit time.,NO_ADDITIONAL_GUIDANCE,OFFICIAL_REPOSITORY_SEARCH
+E6,OFFICIAL_DISCUSSIONS,https://github.com/alibaba/clusterdata,Repository discussions are disabled.,NO_ADDITIONAL_GUIDANCE,OFFICIAL_API
+E7,LOCAL_FULL_DATA,data/raw/alibaba_2026/spot_gpu/job_info_df.csv,PER_JOB max GPU=8; worker multiplication yields max=1456 and 65 all-DC-infeasible jobs.,DIAGNOSTIC_ONLY,LOCAL_FULL_FILE

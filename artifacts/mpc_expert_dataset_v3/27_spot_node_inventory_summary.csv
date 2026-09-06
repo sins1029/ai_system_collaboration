@@ -1,0 +1,2 @@
+source_file,node_count,total_cpu_cores,total_gpu_units,gpu_model_count,node_name_unique,source_sha256
+data/raw/alibaba_2026/spot_gpu/node_info_df.csv,4278,632636,10412,6,True,1ABA161961A5A4A1A61AA581383C5E5ABE3400B59F8597BA8C4EEF7597BC9D18

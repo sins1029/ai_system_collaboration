@@ -7,6 +7,15 @@ from typing import Any, Literal, Sequence
 
 import numpy as np
 
+from sustaincluster_contract.runtime import (
+    InformationMode,
+    controller_duration_minutes,
+    controller_finish_time,
+)
+from sustaincluster_mpc.future_signals import (
+    FutureSignalMode,
+    FutureSignalProvider,
+)
 from sustaincluster_mpc.state_adapter import (
     DataCenterSnapshot,
     SchedulerState,
@@ -15,7 +24,7 @@ from sustaincluster_mpc.state_adapter import (
 
 
 ForecastMode = Literal["no_future_arrivals", "oracle", "noisy_oracle"]
-SUPPORTED_HORIZONS = frozenset({1, 2, 4, 8})
+SUPPORTED_HORIZONS = frozenset({1, 2, 4, 5, 8})
 
 
 @dataclass(frozen=True)
@@ -100,6 +109,8 @@ class HorizonState:
     running_tasks: tuple[RunningTaskHorizonSnapshot, ...]
     transit_tasks: tuple[TransitTaskHorizonSnapshot, ...]
     future_arrivals: tuple[FutureArrivalAggregate, ...]
+    information_mode: InformationMode = "oracle"
+    future_signal_mode: FutureSignalMode = "oracle"
 
 
 @dataclass(frozen=True)
@@ -115,9 +126,18 @@ class _ForecastTask:
 
 
 class HorizonStateAdapter:
-    """从当前环境构建指定长度的只读滚动时域状态。"""
-    def __init__(self, noise_config: ForecastNoiseConfig | None = None) -> None:
+    """从当前环境构建指定长度的只读滚动时域状态."""
+
+    def __init__(
+        self,
+        noise_config: ForecastNoiseConfig | None = None,
+        *,
+        information_mode: InformationMode | None = None,
+        future_signal_provider: FutureSignalProvider | None = None,
+    ) -> None:
         self._noise = noise_config or ForecastNoiseConfig()
+        self._configured_information_mode = information_mode
+        self._future_signal_provider = future_signal_provider
 
     def build_horizon_state(
         self,
@@ -136,12 +156,45 @@ class HorizonStateAdapter:
         ):
             raise ValueError(f"不支持 forecast_mode={forecast_mode!r}")
 
-        current = SustainClusterStateAdapter(env).build_scheduler_state()
+        env_mode = getattr(env, "information_mode", "oracle")
+        if (
+            self._configured_information_mode is not None
+            and hasattr(env, "information_mode")
+            and self._configured_information_mode != env_mode
+        ):
+            raise ValueError(
+                "Horizon adapter information_mode must match the environment"
+            )
+        information_mode = self._configured_information_mode or env_mode
+        if information_mode not in ("oracle", "deployable"):
+            raise ValueError(
+                f"unsupported information_mode={information_mode!r}"
+            )
+        signal_provider = self._future_signal_provider or FutureSignalProvider(
+            "oracle" if information_mode == "oracle" else "persistence"
+        )
+        if information_mode == "deployable" and signal_provider.mode == "oracle":
+            raise ValueError(
+                "deployable mode cannot read oracle future price/carbon traces"
+            )
+        if information_mode == "deployable" and forecast_mode != "no_future_arrivals":
+            raise ValueError(
+                "deployable mode requires no_future_arrivals until an external "
+                "arrival forecast provider is implemented"
+            )
+
+        current = SustainClusterStateAdapter(
+            env, information_mode
+        ).build_scheduler_state()
         step_minutes = current.exogenous.timestep_minutes
-        running = self._snapshot_running_tasks(env, step_minutes)
-        transit = self._snapshot_transit_tasks(env, step_minutes)
+        running = self._snapshot_running_tasks(
+            env, step_minutes, information_mode
+        )
+        transit = self._snapshot_transit_tasks(
+            env, step_minutes, information_mode
+        )
         forecast_tasks = self._forecast_tasks(
-            env, horizon, forecast_mode, step_minutes
+            env, horizon, forecast_mode, step_minutes, information_mode
         )
         future_arrivals = self._aggregate_future_arrivals(forecast_tasks)
         datacenters = self._build_datacenter_timelines(
@@ -152,6 +205,8 @@ class HorizonStateAdapter:
             forecast_tasks,
             horizon,
             step_minutes,
+            information_mode,
+            signal_provider,
         )
         return HorizonState(
             current=current,
@@ -162,10 +217,15 @@ class HorizonStateAdapter:
             running_tasks=running,
             transit_tasks=transit,
             future_arrivals=future_arrivals,
+            information_mode=information_mode,
+            future_signal_mode=signal_provider.mode,
         )
 
     def _snapshot_running_tasks(
-        self, env: Any, step_minutes: float
+        self,
+        env: Any,
+        step_minutes: float,
+        information_mode: InformationMode,
     ) -> tuple[RunningTaskHorizonSnapshot, ...]:
         values: list[RunningTaskHorizonSnapshot] = []
         for dc in env.cluster_manager.datacenters.values():
@@ -176,7 +236,10 @@ class HorizonStateAdapter:
                         f"running task {task.job_name} 没有 finish_time"
                     )
                 release_step = self._ceil_steps(
-                    self._minutes_between(finish_time, env.current_time),
+                    self._minutes_between(
+                        controller_finish_time(task, information_mode),
+                        env.current_time,
+                    ),
                     step_minutes,
                     minimum=0,
                 )
@@ -193,7 +256,10 @@ class HorizonStateAdapter:
         return tuple(values)
 
     def _snapshot_transit_tasks(
-        self, env: Any, step_minutes: float
+        self,
+        env: Any,
+        step_minutes: float,
+        information_mode: InformationMode,
     ) -> tuple[TransitTaskHorizonSnapshot, ...]:
         values: list[TransitTaskHorizonSnapshot] = []
         for arrival_time, task, dc_name in tuple(env.in_transit_tasks):
@@ -211,7 +277,9 @@ class HorizonStateAdapter:
                     destination_dc_id=int(dc.dc_id),
                     arrival_step=arrival_step,
                     duration_steps=self._ceil_steps(
-                        float(task.duration), step_minutes, minimum=1
+                        controller_duration_minutes(task, information_mode),
+                        step_minutes,
+                        minimum=1,
                     ),
                     cpu_cores=self._nonnegative(task.cores_req, "transit CPU"),
                     gpu_units=self._nonnegative(task.gpu_req, "transit GPU"),
@@ -226,6 +294,7 @@ class HorizonStateAdapter:
         horizon: int,
         mode: ForecastMode,
         step_minutes: float,
+        information_mode: InformationMode,
     ) -> tuple[_ForecastTask, ...]:
         if mode == "no_future_arrivals" or horizon == 1:
             return ()
@@ -239,7 +308,9 @@ class HorizonStateAdapter:
                 tasks = env.cluster_manager.get_tasks_for_timestep(future_time)
                 for task in tasks:
                     duration_steps = self._ceil_steps(
-                        float(task.duration), step_minutes, minimum=1
+                        controller_duration_minutes(task, information_mode),
+                        step_minutes,
+                        minimum=1,
                     )
                     remaining_deadline_minutes = self._minutes_between(
                         task.sla_deadline, env.current_time
@@ -351,6 +422,8 @@ class HorizonStateAdapter:
         forecast_tasks: Sequence[_ForecastTask],
         horizon: int,
         step_minutes: float,
+        information_mode: InformationMode,
+        signal_provider: FutureSignalProvider,
     ) -> tuple[HorizonDataCenterSnapshot, ...]:
         running_by_dc: dict[int, list[RunningTaskHorizonSnapshot]] = {}
         transit_by_dc: dict[int, list[TransitTaskHorizonSnapshot]] = {}
@@ -386,7 +459,9 @@ class HorizonStateAdapter:
 
             for task in tuple(raw.pending_tasks):
                 duration_steps = self._ceil_steps(
-                    float(task.duration), step_minutes, minimum=1
+                    controller_duration_minutes(task, information_mode),
+                    step_minutes,
+                    minimum=1,
                 )
                 self._reserve(
                     known_cpu,
@@ -445,14 +520,11 @@ class HorizonStateAdapter:
                 0.0,
                 current.memory_total_gb,
             )
-            prices = self._cyclic_values(
-                raw.price_manager.prices, raw.price_manager.index, horizon
+            prices = signal_provider.electricity_price(
+                raw, env.current_time, horizon
             )
-            carbon = self._cyclic_values(
-                raw.ci_manager.carbon_smooth,
-                raw.ci_manager.time_step,
-                horizon,
-                nonnegative=True,
+            carbon = signal_provider.carbon_intensity(
+                raw, env.current_time, horizon
             )
             results.append(
                 HorizonDataCenterSnapshot(

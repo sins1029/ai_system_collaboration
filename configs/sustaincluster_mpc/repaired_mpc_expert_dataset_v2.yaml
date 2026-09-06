@@ -1,0 +1,31 @@
+repaired_mpc_expert_dataset_v2:
+  dataset_version: repaired_mpc_expert_dataset_v2
+  output_dir: artifacts/repaired_mpc_expert_dataset_v2
+  dataset_root: artifacts/forecast_dataset_v1
+  transformer_checkpoint: artifacts/transformer_forecast_v1/checkpoints/transformer_seed_33_best.pt
+  optimizer_config: configs/sustaincluster_mpc/h4_expert.yaml
+  datacenter_config: references/external_repos/sustain-cluster/configs/env/datacenters.yaml
+  sustaincluster_commit: 3f6ea95cb835b89ba50b0ef76d66d14b8037643e
+  teacher: H4_ORACLE_REPAIRED
+  teacher_information_mode: PRIVILEGED_ORACLE
+  student_information_mode: DEPLOYABLE_CURRENT_OBSERVATION
+  seeds:
+    start: 3001
+    stop: 3040
+  split:
+    shuffle_seed: 2026
+    train_seed_count: 28
+    validation_seed_count: 6
+    test_seed_count: 6
+  episode_steps: 96
+  student_obs_dim_expected: 34
+  action_dim_expected: 6
+  baseline_estimated_duration_minutes: 60.0
+  scenarios:
+    high_load_trace:
+      environment_start: "2023-02-13T00:00:00Z"
+      dataset_start: "1970-03-10T00:00:00Z"
+    normal_trace:
+      environment_start: "2023-02-17T00:00:00Z"
+      dataset_start: "1970-03-14T00:00:00Z"
+  stress_diagnostic: true

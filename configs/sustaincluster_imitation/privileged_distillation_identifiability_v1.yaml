@@ -1,0 +1,35 @@
+privileged_distillation_identifiability_v1:
+  expert_dataset_dir: artifacts/repaired_mpc_expert_dataset_v2/dataset
+  expert_dataset_manifest: artifacts/repaired_mpc_expert_dataset_v2/20_dataset_manifest.json
+  feature_schema: artifacts/repaired_mpc_expert_dataset_v2/06_feature_schema.json
+  action_schema: artifacts/repaired_mpc_expert_dataset_v2/07_action_schema.json
+  split_manifest: artifacts/repaired_mpc_expert_dataset_v2/05_split_manifest.json
+  forecast_dataset_root: artifacts/forecast_dataset_v1
+  datacenter_config: references/external_repos/sustain-cluster/configs/env/datacenters.yaml
+  risk_thresholds: artifacts/triggered_mpc_v1/05_trigger_thresholds.json
+  bc_oracle_current_artifacts: artifacts/bc_v2_offline
+  output_dir: artifacts/privileged_distillation_identifiability_v1
+  expected_dataset_sha256: 27E0B22558E1F00AA22E3B899D505E7506C10192ED99EA360278C8D819FF9E3C
+  current_obs_dim: 34
+  oracle_future_pressure_dim: 60
+  oracle_augmented_obs_dim: 94
+  action_dim: 6
+  future_horizons_minutes: [15, 30, 45, 60]
+  resources: [cpu, gpu, memory]
+  hidden_dim: 256
+  use_layer_norm: true
+  optimizer: AdamW
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  batch_size: 512
+  max_epochs: 50
+  early_stopping_patience: 8
+  early_stopping_min_delta: 0.0
+  gradient_clip: 1.0
+  inference_batch_size: 2048
+  seeds: [11, 22, 33]
+  device: cpu
+  deterministic: true
+  class_weighting: false
+  disagreement_weighting: false
+  model_selection: validation_masked_cross_entropy_only

@@ -11,6 +11,10 @@ from sustaincluster_mpc.one_step_optimizer import (
     OptimizationConfig,
     OptimizationResult,
 )
+from sustaincluster_mpc.future_signals import (
+    FutureSignalMode,
+    FutureSignalProvider,
+)
 from sustaincluster_mpc.horizon_adapter import (
     ForecastNoiseConfig,
     FutureArrivalAggregate,
@@ -48,6 +52,8 @@ __all__ = [
     "ExogenousSignalsSnapshot",
     "ForecastNoiseConfig",
     "FutureArrivalAggregate",
+    "FutureSignalMode",
+    "FutureSignalProvider",
     "HorizonDataCenterAllocation",
     "HorizonDataCenterSnapshot",
     "HorizonState",

@@ -1,0 +1,21 @@
+# SpotGPU2026 MPC Expert Dataset v3 Generation Protocol
+
+- Scenario: `B_SPOTGPU2026_NATIVE_MEDIUM`.
+- Timeline: step 0 through the last arrival step, inclusive; no daily or split reset.
+- Trace duration: 17,670 x 15 minutes = 184.0625 days.
+- Runtime truth: source `true_duration` controls simulator completion and release only.
+- Deployable duration: frozen train-70% hierarchical conditional median, minimum support 100.
+- Requests: `PER_JOB`; CPU/GPU are never multiplied by `worker_num`.
+- Capacity: frozen native 5DC partition, CPU 632636, GPU 10412, memory 542259.428571 GB (`MODELED_DC_MEMORY`).
+- GPU models: metadata only; GPU-equivalent scheduling; no compatibility constraints.
+- SLA: medium, HP 1 step and Spot 8 steps; objective/reward weights unchanged.
+- H1: repaired current-only deployable state.
+- H4 Oracle: current plus +15/+30/+45/+60 minute true global workload aggregates, distributed with the frozen deterministic origin-pressure model.
+- Energy/carbon regions: US-CAL-CISO, DE-LU, CL-SIC, SG, AU-NSW.
+- Energy/carbon source: SustainCluster 2023 regional datasets; step 0 maps to `2023-02-17T00:00:00Z`, with each DC signal manager reset to the corresponding local day/hour; `EXTERNAL_SCENARIO_SIGNAL`; not Alibaba2026 measurements.
+- Checkpoint interval: 250 steps; task/runtime/resource/output/RNG state saved.
+- Exact restart gate: `True` for uninterrupted 100 versus 50 + restart + 50 steps.
+- Empty states: retained at state level, zero task decisions, no MILP call, continuous runtime and signal advancement.
+- Feasible mask: assignment-ingress feasibility under the frozen bounded-defer and whole-DC task-capacity constraints; an accepted destination reservation may wait for physical resources to be released.
+- Fallback expert labels: forbidden.
+- Transformer/RL/policy training: not used.

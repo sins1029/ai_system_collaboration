@@ -1,0 +1,29 @@
+transformer_forecast_v1:
+  dataset_root: artifacts/forecast_dataset_v1
+  output_dir: artifacts/transformer_forecast_v1
+  history_length: 96
+  forecast_horizon: 4
+  seeds: [11, 22, 33]
+
+  model:
+    d_model: 64
+    nhead: 4
+    num_layers: 2
+    dim_feedforward: 256
+    dropout: 0.1
+    head_hidden_dim: 128
+
+  training:
+    optimizer: AdamW
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    batch_size: 64
+    max_epochs: 100
+    early_stopping_patience: 10
+    gradient_clip_norm: 1.0
+
+  evaluation:
+    inference_batch_size: 128
+    latency_warmup: 10
+    latency_iterations: 100
+    gpu_peak_quantile: 0.90

@@ -1,0 +1,39 @@
+triggered_mpc_v1:
+  dataset_root: artifacts/forecast_dataset_v1
+  transformer_checkpoint: artifacts/transformer_forecast_v1/checkpoints/transformer_seed_33_best.pt
+  output_dir: artifacts/triggered_mpc_v1
+  sustaincluster_commit: 3f6ea95cb835b89ba50b0ef76d66d14b8037643e
+  calibration_seeds: [1101, 1102, 1103, 1104, 1105]
+  evaluation_seeds: [1201, 1202, 1203, 1204, 1205]
+  episode_steps: 96
+  smoke_steps: 8
+  history_length: 96
+  forecast_horizon: 4
+  internal_capacity_nodes: 5
+  primary_threshold_quantile: 0.95
+  sensitivity_quantiles: [0.90, 0.99]
+  device: cpu
+  scenarios:
+    high_load_trace:
+      environment_start: "2023-02-13T00:00:00Z"
+      dataset_start: "1970-03-10T00:00:00Z"
+    normal_trace:
+      environment_start: "2023-02-17T00:00:00Z"
+      dataset_start: "1970-03-14T00:00:00Z"
+  controllers:
+    - H1
+    - H4_TRANSFORMER_ALWAYS
+    - H4_TRANSFORMER_TRIGGERED_P95
+    - H4_ORACLE_ALWAYS
+    - H4_TRANSFORMER_TRIGGERED_P90
+    - H4_TRANSFORMER_TRIGGERED_P99
+  datacenter_config: references/external_repos/sustain-cluster/configs/env/datacenters.yaml
+  optimizer_config: configs/sustaincluster_mpc/h4_expert.yaml
+  information_contract:
+    environment_mode: deployable
+    duration_estimate_mode: declared_or_baseline
+    baseline_estimated_duration_minutes: 60.0
+    deployable_future_signal_mode: persistence
+    oracle_future_signal_mode: oracle
+    repaired_timeline_semantics: CURRENT_NODE_PLUS_FOUR_FUTURE_NODES
+  threshold_selection_rule: risk quantile only; no reward tuning

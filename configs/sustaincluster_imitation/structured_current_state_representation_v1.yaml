@@ -1,0 +1,45 @@
+structured_current_state_representation_v1:
+  output_dir: artifacts/structured_current_state_representation_v1
+  expert_dataset_dir: artifacts/repaired_mpc_expert_dataset_v2/dataset
+  expert_dataset_manifest: artifacts/repaired_mpc_expert_dataset_v2/20_dataset_manifest.json
+  expert_dataset_generation_config: artifacts/repaired_mpc_expert_dataset_v2/03_generation_config.json
+  episode_manifest: artifacts/repaired_mpc_expert_dataset_v2/04_episode_manifest.csv
+  split_manifest: artifacts/repaired_mpc_expert_dataset_v2/05_split_manifest.json
+  bc34_artifacts: artifacts/privileged_distillation_identifiability_v1
+  optimizer_config: configs/sustaincluster_mpc/h4_expert.yaml
+  expected_dataset_sha256: 27E0B22558E1F00AA22E3B899D505E7506C10192ED99EA360278C8D819FF9E3C
+  expected_git_head: 90eb972f78742603b522fabc3e1cf65391434418
+  expected_sustaincluster_commit: 3f6ea95cb835b89ba50b0ef76d66d14b8037643e
+  action_dim: 6
+  current34_dim: 34
+  risk_threshold_p95: 0.5854637687956499
+  seeds: [11, 22, 33]
+  device: cpu
+  optimizer: AdamW
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  task_batch_size: 512
+  state_batch_size: 16
+  max_epochs: 50
+  early_stopping_patience: 8
+  early_stopping_min_delta: 0.0
+  gradient_clip: 1.0
+  inference_batch_size: 2048
+  hidden_dim: 256
+  use_layer_norm: true
+  structured_embedding_dim: 64
+  deterministic: true
+  class_weighting: false
+  risk_weighting: false
+  disagreement_weighting: false
+  focal_loss: false
+  near_neighbor:
+    query_limit_per_split: 5000
+    reference_limit_per_split: 20000
+    ks: [1, 5, 10, 20]
+    seed: 20260904
+  exact_collision:
+    standardized_round_decimals: 3
+  determinism:
+    repetitions: 10
+    representative_state_count: 6

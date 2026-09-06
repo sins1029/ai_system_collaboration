@@ -1,0 +1,4 @@
+scope,task_decisions,h1_defer_count,h1_defer_rate,h4_defer_count,h4_defer_rate,h1_execute_to_h4_defer,h1_defer_to_h4_execute
+ALL,466867,0,0.0,0,0.0,0,0
+HP,415713,0,0.0,0,0.0,0,0
+Spot,51154,0,0.0,0,0.0,0,0

@@ -5,6 +5,12 @@ import math
 from dataclasses import dataclass
 from typing import Any, Optional, Sequence
 
+from sustaincluster_contract.runtime import (
+    InformationMode,
+    controller_duration_minutes,
+    controller_finish_time,
+)
+
 
 @dataclass(frozen=True)
 class TaskSnapshot:
@@ -22,6 +28,7 @@ class TaskSnapshot:
     bandwidth_gb: float
     wait_intervals: int
     was_deferred: bool
+    scheduler_wait_intervals: int = 0
 
 
 @dataclass(frozen=True)
@@ -88,17 +95,29 @@ class SchedulerState:
     task_destinations: tuple[TaskDestinationSnapshot, ...]
     exogenous: ExogenousSignalsSnapshot
     allow_defer: bool
+    information_mode: InformationMode = "oracle"
 
 
 class SustainClusterStateAdapter:
     """构建不可变调度快照，不修改 SustainCluster。"""
 
-    def __init__(self, env: Any) -> None:
+    def __init__(
+        self,
+        env: Any,
+        information_mode: InformationMode | None = None,
+    ) -> None:
         if env is None:
             raise ValueError("env 不能为 None")
         if not hasattr(env, "cluster_manager") or not hasattr(env, "current_tasks"):
             raise TypeError("env 必须提供 cluster_manager 和 current_tasks")
         self._env = env
+        self.information_mode = information_mode or getattr(
+            env, "information_mode", "oracle"
+        )
+        if self.information_mode not in ("oracle", "deployable"):
+            raise ValueError(
+                f"unsupported information_mode={self.information_mode!r}"
+            )
 
     def get_pending_tasks(self) -> tuple[TaskSnapshot, ...]:
         current_time = self._required_attribute(self._env, "current_time", "env")
@@ -118,7 +137,7 @@ class SustainClusterStateAdapter:
                 )
 
             duration = self._nonnegative(
-                self._required_attribute(task, "duration", f"task {task_id}"),
+                controller_duration_minutes(task, self.information_mode),
                 f"task {task_id} duration_minutes",
             )
             finish_time = getattr(task, "finish_time", None)
@@ -126,7 +145,11 @@ class SustainClusterStateAdapter:
                 remaining_duration = duration
             else:
                 remaining_duration = max(
-                    0.0, self._minutes_between(finish_time, current_time)
+                    0.0,
+                    self._minutes_between(
+                        controller_finish_time(task, self.information_mode),
+                        current_time,
+                    ),
                 )
 
             sla_deadline = self._required_attribute(
@@ -136,9 +159,16 @@ class SustainClusterStateAdapter:
                 task, "arrival_time", f"task {task_id}"
             )
             wait_intervals = int(getattr(task, "wait_intervals", 0))
+            scheduler_wait_intervals = int(
+                getattr(task, "scheduler_wait_intervals", 0)
+            )
             if wait_intervals < 0:
                 raise ValueError(
                     f"task {task_id} wait_intervals 必须为非负数"
+                )
+            if not 0 <= scheduler_wait_intervals <= wait_intervals:
+                raise ValueError(
+                    f"task {task_id} scheduler waiting 与 total waiting 不一致"
                 )
 
             snapshots.append(
@@ -186,6 +216,7 @@ class SustainClusterStateAdapter:
                     was_deferred=bool(
                         getattr(task, "temporarily_deferred", False)
                     ),
+                    scheduler_wait_intervals=scheduler_wait_intervals,
                 )
             )
         return tuple(snapshots)
@@ -231,7 +262,10 @@ class SustainClusterStateAdapter:
             running_tasks = tuple(dc.running_tasks)
             release_times = tuple(
                 sorted(
-                    self._iso_timestamp(task.finish_time, "running task finish_time")
+                    self._iso_timestamp(
+                        controller_finish_time(task, self.information_mode),
+                        "running task controller-visible finish_time",
+                    )
                     for task in running_tasks
                     if getattr(task, "finish_time", None) is not None
                 )
@@ -362,6 +396,7 @@ class SustainClusterStateAdapter:
             task_destinations=task_destinations,
             exogenous=self.get_exogenous_signals(),
             allow_defer=not bool(self._env.disable_defer_action),
+            information_mode=self.information_mode,
         )
 
     def _get_task_destination_states(

@@ -1,0 +1,14 @@
+forecast_dataset_v1:
+  source_file: references/external_repos/sustain-cluster/data/workload/alibaba_2020_dataset/result_df_full_year_2020.pkl
+  source_sha256: 3BA8A8E0067288F8D2542752A292F7DA04CB79305689BA145CC6060E96CB7F2E
+  source_type: FIRST_VERIFIED_UNIQUE_CYCLE
+  unique_cycle_days: 49
+  time_resolution_minutes: 15
+  task_scale: 5.0
+  history_length: 96
+  supported_history_lengths: [24, 48, 96]
+  forecast_horizon: 4
+  preferred_split_days: [35, 7, 7]
+  spot_check_seed: 2026
+  spot_check_count: 10
+  output_dir: artifacts/forecast_dataset_v1

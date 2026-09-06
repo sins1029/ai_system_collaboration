@@ -1,0 +1,36 @@
+field,provenance_type,source_or_rule,visibility
+source,CONSTANT,scenario id,metadata
+task_id,DERIVED,prefix + job_name,deployable
+submit_time,DIRECT,submit_time,deployable
+arrival_step,DERIVED,floor(submit_time/900),deployable
+original_index,DERIVED,source row position,deployable
+cpu_request_raw,DIRECT,cpu_request,audit
+gpu_request_raw,DIRECT,gpu_request,audit
+worker_num,DIRECT,worker_num,deployable metadata
+request_scope,CONSTANT,PER_JOB,audit
+cpu_request_effective,DIRECT,cpu_request,deployable
+gpu_request_effective,DIRECT,gpu_request,deployable
+memory_request,MODELED,Alibaba2020 train conditional median,deployable
+memory_source,CONSTANT,memory model id,audit
+memory_fallback_level,MODELED,memory model support fallback,audit
+bandwidth,MODELED,Alibaba2020 train global median,deployable
+true_duration,SIMULATOR_ONLY,DIRECT_SOURCE duration,forbidden deployable
+bandwidth_source,CONSTANT,bandwidth model id,audit
+estimated_duration,MODELED,Spot train hierarchical median,deployable
+true_duration_source,CONSTANT,DIRECT_SOURCE_SIMULATOR_ONLY,audit
+gpu_model,DIRECT,gpu_model,metadata-only
+estimated_duration_steps,DERIVED,ceil(estimated_duration/900),deployable
+estimated_duration_source,CONSTANT,duration model id,audit
+estimated_duration_fallback_level,MODELED,duration hierarchy fallback,audit
+priority,DIRECT,job_type,deployable
+origin_dc,MODELED,deterministic weighted hash,deployable
+origin_source,CONSTANT,MODELED_ORIGIN,audit
+sla_class,MODELED,scenario profile,deployable
+sla_steps,MODELED,estimated steps + wait,deployable
+sla_deadline_step,MODELED,arrival + estimated steps + wait,deployable
+max_wait_steps,MODELED,selected scenario profile,deployable
+defer_allowed,MODELED,selected scenario profile,deployable
+defer_class,MODELED,scenario profile,deployable
+sla_source,CONSTANT,MODELED_SCENARIO_PARAMETER,audit
+gpu_heterogeneity_mode,CONSTANT,METADATA_ONLY,audit
+provenance_flags,CONSTANT,field-class summary,audit

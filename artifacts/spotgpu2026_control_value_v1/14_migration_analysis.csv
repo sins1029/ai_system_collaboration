@@ -1,0 +1,3 @@
+﻿controller,phase,migration_count,migration_cost_usd,migration_cost_definition
+H1,primary,340979.0,,NOT_SEPARATELY_DEFINED; CROSS_DC_TRANSMISSION_IS_REPORTED
+H4_ORACLE,primary,342073.0,,NOT_SEPARATELY_DEFINED; CROSS_DC_TRANSMISSION_IS_REPORTED

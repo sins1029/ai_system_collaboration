@@ -1,0 +1,2 @@
+candidate_status,reason,gpu_offered_load_ratio,gpu_mandatory_peak_ratio,loose_offered_threshold,loose_mandatory_threshold,workload_modified
+NOT_REQUIRED,native GPU offered load and mandatory peak are not both below looseness thresholds,0.6543355891215155,0.7850240107568203,0.3,0.5,False

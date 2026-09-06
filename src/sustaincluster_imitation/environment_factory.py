@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import copy
 import os
+import warnings
 from pathlib import Path
 
 import pandas as pd
 import yaml
 
+from sustaincluster_contract.integration import (
+    bind_cluster_task_extractor,
+    bind_task_scheduling_env,
+)
+from sustaincluster_contract.runtime import (
+    DurationEstimateMode,
+    ExternalDurationEstimator,
+    InformationMode,
+    RuntimeInformationContract,
+)
 from sustaincluster_imitation.paths import prepare_sustaincluster_imports
 
 
@@ -18,9 +29,29 @@ def build_sustaincluster_env(
     allow_defer: bool = True,
     strategy: str = "manual_rl",
     initial_seed: int = 123,
+    information_mode: InformationMode = "oracle",
+    duration_estimate_mode: DurationEstimateMode | None = None,
+    baseline_estimated_duration_minutes: float = 60.0,
+    external_duration_estimator: ExternalDurationEstimator | None = None,
 ):
-    """构建 SustainCluster 环境，并在返回前恢复调用方工作目录。"""
+    """Build a SustainCluster environment with an explicit information contract."""
     repo = prepare_sustaincluster_imports(repo)
+    contract = RuntimeInformationContract.for_mode(
+        information_mode,
+        duration_estimate_mode=duration_estimate_mode,
+        baseline_estimated_duration_minutes=(
+            baseline_estimated_duration_minutes
+        ),
+        external_duration_estimator=external_duration_estimator,
+    )
+    if contract.information_mode == "oracle":
+        warnings.warn(
+            "Oracle information mode is enabled; results are upper-bound / "
+            "non-deployable.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+
     from envs.task_scheduling_env import TaskSchedulingEnv
     from rewards.predefined.composite_reward import CompositeReward
     from simulation.cluster_manager import DatacenterClusterManager
@@ -38,7 +69,9 @@ def build_sustaincluster_env(
         if not workload_path.is_absolute():
             workload_path = (repo / workload_path).resolve()
         if not workload_path.is_file():
-            raise FileNotFoundError(f"未找到 SustainCluster 工作负载文件：{workload_path}")
+            raise FileNotFoundError(
+                f"SustainCluster workload file was not found: {workload_path}"
+            )
         sim_config["workload_path"] = str(workload_path)
         start_time = pd.Timestamp(start_time)
         if start_time.tzinfo is None:
@@ -56,6 +89,11 @@ def build_sustaincluster_env(
                 "disable_defer_action": not allow_defer,
                 "use_tensorboard": False,
                 "strategy": strategy,
+                "information_mode": contract.information_mode,
+                "duration_estimate_mode": contract.duration_estimate_mode,
+                "baseline_estimated_duration_minutes": (
+                    contract.baseline_estimated_duration_minutes
+                ),
             }
         )
         cluster = DatacenterClusterManager(
@@ -69,12 +107,15 @@ def build_sustaincluster_env(
             cloud_provider=sim_config["cloud_provider"],
             logger=None,
         )
+        bind_cluster_task_extractor(cluster, contract)
         reward = CompositeReward(
             components=reward_config["components"],
             normalize=reward_config.get("normalize", False),
-            freeze_stats_after_steps=reward_config.get("freeze_stats_after_steps"),
+            freeze_stats_after_steps=reward_config.get(
+                "freeze_stats_after_steps"
+            ),
         )
-        return TaskSchedulingEnv(
+        env = TaskSchedulingEnv(
             cluster_manager=cluster,
             start_time=start_time,
             end_time=start_time + pd.Timedelta(minutes=episode_steps * 15),
@@ -83,5 +124,6 @@ def build_sustaincluster_env(
             sim_config=sim_config,
             initial_seed_for_resets=initial_seed,
         )
+        return bind_task_scheduling_env(env, contract)
     finally:
         os.chdir(previous_cwd)

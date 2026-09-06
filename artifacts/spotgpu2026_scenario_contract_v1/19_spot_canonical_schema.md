@@ -1,0 +1,41 @@
+# Spot Canonical Task Schema v1
+
+主表保存审计字段、deployable modeled fields 与 simulator-only truth；策略输入必须使用白名单，不能直接使用整行。
+
+| field | dtype | provenance_type | source_or_rule | visibility | required | contract_version |
+| --- | --- | --- | --- | --- | --- | --- |
+| source | string/enum | CONSTANT | scenario id | metadata | True | spotgpu2026_v1 |
+| task_id | string/enum | DERIVED | prefix + job_name | deployable | True | spotgpu2026_v1 |
+| submit_time | int64 seconds | DIRECT | submit_time | deployable | True | spotgpu2026_v1 |
+| arrival_step | int64 | DERIVED | floor(submit_time/900) | deployable | True | spotgpu2026_v1 |
+| original_index | int64 | DERIVED | source row position | deployable | True | spotgpu2026_v1 |
+| cpu_request_raw | float vCPU | DIRECT | cpu_request | audit | True | spotgpu2026_v1 |
+| gpu_request_raw | float GPU | DIRECT | gpu_request | audit | True | spotgpu2026_v1 |
+| worker_num | int64 | DIRECT | worker_num | deployable metadata | True | spotgpu2026_v1 |
+| request_scope | string/enum | CONSTANT | PER_JOB | audit | True | spotgpu2026_v1 |
+| cpu_request_effective | float vCPU | DIRECT | cpu_request | deployable | True | spotgpu2026_v1 |
+| gpu_request_effective | float GPU-equivalent | DIRECT | gpu_request | deployable | True | spotgpu2026_v1 |
+| memory_request | float simulator unit | MODELED | Alibaba2020 train conditional median | deployable | True | spotgpu2026_v1 |
+| memory_source | string/enum | CONSTANT | memory model id | audit | True | spotgpu2026_v1 |
+| memory_fallback_level | string/enum | MODELED | memory model support fallback | audit | True | spotgpu2026_v1 |
+| bandwidth | float GB | MODELED | Alibaba2020 train global median | deployable | True | spotgpu2026_v1 |
+| true_duration | int64 seconds | SIMULATOR_ONLY | DIRECT_SOURCE duration | forbidden deployable | True | spotgpu2026_v1 |
+| bandwidth_source | string/enum | CONSTANT | bandwidth model id | audit | True | spotgpu2026_v1 |
+| estimated_duration | float seconds | MODELED | Spot train hierarchical median | deployable | True | spotgpu2026_v1 |
+| true_duration_source | string/enum | CONSTANT | DIRECT_SOURCE_SIMULATOR_ONLY | audit | True | spotgpu2026_v1 |
+| gpu_model | string/enum | DIRECT | gpu_model | metadata-only | True | spotgpu2026_v1 |
+| estimated_duration_steps | int64 | DERIVED | ceil(estimated_duration/900) | deployable | True | spotgpu2026_v1 |
+| estimated_duration_source | string/enum | CONSTANT | duration model id | audit | True | spotgpu2026_v1 |
+| estimated_duration_fallback_level | string/enum | MODELED | duration hierarchy fallback | audit | True | spotgpu2026_v1 |
+| priority | string/enum | DIRECT | job_type | deployable | True | spotgpu2026_v1 |
+| origin_dc | int64 | MODELED | deterministic weighted hash | deployable | True | spotgpu2026_v1 |
+| origin_source | string/enum | CONSTANT | MODELED_ORIGIN | audit | True | spotgpu2026_v1 |
+| sla_class | string/enum | MODELED | scenario profile | deployable | True | spotgpu2026_v1 |
+| sla_steps | int64 | MODELED | estimated steps + wait | deployable | True | spotgpu2026_v1 |
+| sla_deadline_step | int64 | MODELED | arrival + estimated steps + wait | deployable | True | spotgpu2026_v1 |
+| max_wait_steps | int64 | MODELED | selected scenario profile | deployable | True | spotgpu2026_v1 |
+| defer_allowed | bool | MODELED | selected scenario profile | deployable | True | spotgpu2026_v1 |
+| defer_class | string/enum | MODELED | scenario profile | deployable | True | spotgpu2026_v1 |
+| sla_source | string/enum | CONSTANT | MODELED_SCENARIO_PARAMETER | audit | True | spotgpu2026_v1 |
+| gpu_heterogeneity_mode | string/enum | CONSTANT | METADATA_ONLY | audit | True | spotgpu2026_v1 |
+| provenance_flags | string/enum | CONSTANT | field-class summary | audit | True | spotgpu2026_v1 |

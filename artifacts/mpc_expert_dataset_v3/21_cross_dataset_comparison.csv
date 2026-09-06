@@ -1,0 +1,3 @@
+dataset,formal_expert_dataset,states,task_decisions,capacity_basis,gpu_capacity,gpu_offered_load_ratio,status
+Alibaba2020,True,7680,259920,SUSTAINCLUSTER_5DC,2900.0,NOT_APPLICABLE_DIFFERENT_TRACE,V3_READY
+SpotGPU2026,False,64,3109,COMPLETE_NODE_INFO_NATIVE_5DC,10412.0,0.6543355891215155,DYNAMIC_PREFLIGHT_READY

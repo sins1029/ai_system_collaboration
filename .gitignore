@@ -20,6 +20,16 @@ dist/
 .eggs/
 
 # Generated outputs
+*.parquet
+*.npz
+*.pkl
+*.pickle
+*.ckpt
+*.onnx
+*.pth
+*.pt
+*.safetensors
+checkpoints/
 results/*
 !results/.gitkeep
 tmp/

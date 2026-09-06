@@ -1,0 +1,238 @@
+{
+  "checkpoint_exact": true,
+  "data_files": {
+    "energy_signal_provenance": {
+      "bytes": 3595,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/energy_signal_provenance.csv",
+      "sha256": "7B809F6A4ED98364BD7FC649FC33ABE888EC9AEC669AC1C91CF52076FD94D84F"
+    },
+    "events_full": {
+      "bytes": 9863379,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/runtime_events_full.parquet",
+      "sha256": "1E5B3EB3F837A679CF7A8F8CD5E4AF42427D33F75FF43895E919710BB5C0622F"
+    },
+    "events_test": {
+      "bytes": 1842751,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/runtime_events_test.parquet",
+      "sha256": "8F789EC3722EE38B1A8437EB1B13CA76579833B99B6B2DA7A45EE24B1B07D7DD"
+    },
+    "events_train": {
+      "bytes": 6449985,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/runtime_events_train.parquet",
+      "sha256": "4B241B5BE592EF30026C0E8AAD0964E1A081577518D7F984FE33B4EABCB4182B"
+    },
+    "events_validation": {
+      "bytes": 1756831,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/runtime_events_val.parquet",
+      "sha256": "796E8ED4AF4F032688BBC5F280264037A6FBCD2C2A19CD3128316770AD101D25"
+    },
+    "labels_full": {
+      "bytes": 4128230,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/labels/expert_actions_full.parquet",
+      "sha256": "0176EF58170241100E77A2FA9EE6BB3C87D4D98568FF455FF824ADC781459C38"
+    },
+    "labels_test": {
+      "bytes": 859792,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/labels/expert_actions_test.parquet",
+      "sha256": "6A160F29A77D41C16BA399AAFAD20038134DD04FD7EC2C53026BC86C95FB2365"
+    },
+    "labels_train": {
+      "bytes": 2874594,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/labels/expert_actions_train.parquet",
+      "sha256": "E6D2F949449BD0660EABDB25B16E55DE8DB3FDF10137F435B7EB549D2372F192"
+    },
+    "labels_validation": {
+      "bytes": 866816,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/labels/expert_actions_val.parquet",
+      "sha256": "3A8E62C446E08C840A27C05EDD11487EE1629103B66FF17CBDE9C5DCCC5E1206"
+    },
+    "loader_manifest": {
+      "bytes": 4100,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/schema_and_loader_manifest.json",
+      "sha256": "8206303CB8B8D927A2AA9C9E7BFFF9F69A0C19A55B4FF94F65D07021E5A2F74E"
+    },
+    "privileged_full": {
+      "bytes": 7859733,
+      "path": "artifacts/mpc_expert_dataset_v3/privileged_future/scenario_b/oracle_future_full.parquet",
+      "sha256": "B71B127134CAA6445C2D8D913F4690C0F7F969AC074C2524007B88D3F37061E7"
+    },
+    "privileged_test": {
+      "bytes": 1676213,
+      "path": "artifacts/mpc_expert_dataset_v3/privileged_future/scenario_b/oracle_future_test.parquet",
+      "sha256": "43525796B5AD83E0F3496E689B0E3BEE6F8CD0B56E3B6D9C76CB9B9AD86CF435"
+    },
+    "privileged_train": {
+      "bytes": 4007910,
+      "path": "artifacts/mpc_expert_dataset_v3/privileged_future/scenario_b/oracle_future_train.parquet",
+      "sha256": "286C26BA83E534FE2D6FBFD5AB0202A3774D6B4B13614B36CF255D457FFE1A2F"
+    },
+    "privileged_validation": {
+      "bytes": 1482641,
+      "path": "artifacts/mpc_expert_dataset_v3/privileged_future/scenario_b/oracle_future_val.parquet",
+      "sha256": "DFC7E042907C3769F27E6DE59C772139121B9D5BC9CD477AFE298FF64164B2DF"
+    },
+    "states_full": {
+      "bytes": 71246368,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/states_full.parquet",
+      "sha256": "950FEF00621EBAE24880EBFA8167C0B70A8257A550C1759E86E8084F62B622DA"
+    },
+    "states_test": {
+      "bytes": 8543435,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/states_test.parquet",
+      "sha256": "6E6A189C902F3CC2D41E331FA6E7BC2C0466BE05B53F544A7D64F5CDD1421AE1"
+    },
+    "states_train": {
+      "bytes": 44737431,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/states_train.parquet",
+      "sha256": "7CB001A449B93ED40BECB38AC48AB7CC68D66A73631A470AB2F16C3A2FC924C9"
+    },
+    "states_validation": {
+      "bytes": 9856408,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/states_val.parquet",
+      "sha256": "E77273DF9BA35FF922F4A8DFC296F045DED0B88D3DA4E21D144B3784D661E4AD"
+    },
+    "task_lifecycle_full": {
+      "bytes": 7742745,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/task_lifecycle_full.parquet",
+      "sha256": "794C033E28002DBA33054C3B06022C27E0D2BD05C3F51589CC0E7EF64014DADD"
+    },
+    "tasks_full": {
+      "bytes": 6367430,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/tasks_full.parquet",
+      "sha256": "3831E9F3A1A0CF0574F34633EC8C9BC40C9FEEF35EC8B5CFCB77FA108E0E5C12"
+    },
+    "tasks_test": {
+      "bytes": 1274832,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/tasks_test.parquet",
+      "sha256": "C0E6A30E658BAC1EB7BC85DA6148F1A183C6DC3841B751877124F3531CFFB02E"
+    },
+    "tasks_train": {
+      "bytes": 4400186,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/tasks_train.parquet",
+      "sha256": "231E846138B4F906651D0352C9E57D80F2984ED78EA9A261F30BB8D0F8CC8890"
+    },
+    "tasks_validation": {
+      "bytes": 1276288,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/deployable_current/tasks_val.parquet",
+      "sha256": "264474F5A649F25811FC7544C1DCA1CC8C996924D982DA75A4B0F789F7C82B29"
+    },
+    "truth_full": {
+      "bytes": 5336190,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/task_truth_decisions_full.parquet",
+      "sha256": "C58A7183A51822AAB1241ECB4DD56D4E6A386AB3A17C4F63DABD8CE12810FE47"
+    },
+    "truth_test": {
+      "bytes": 1003844,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/task_truth_decisions_test.parquet",
+      "sha256": "F3D13F65EA151FFA3EA275D522D8B6E76C2FB9EEB2B6874414CAEF734A3DE21A"
+    },
+    "truth_train": {
+      "bytes": 3605271,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/task_truth_decisions_train.parquet",
+      "sha256": "8095A3AB7C1B3DDF2D089D940AB81B8001E3439F3FB5DBF0C2DA402524B1811F"
+    },
+    "truth_validation": {
+      "bytes": 996934,
+      "path": "artifacts/mpc_expert_dataset_v3/dataset/scenario_b/simulator_only/task_truth_decisions_val.parquet",
+      "sha256": "5E501825E97CF91DFE4E20889B10D22953483D47F1264CC1540557ACBD6CA411"
+    }
+  },
+  "documented_limitations": [
+    "MODELED_DC_MEMORY is not measured Alibaba2026 host memory",
+    "regional price/carbon are SustainCluster 2023 EXTERNAL_SCENARIO_SIGNAL, not Alibaba2026 measurements",
+    "origin, memory, bandwidth, duration estimate and SLA are frozen modeled fields",
+    "GPU models are descriptive metadata; compatibility constraints are disabled",
+    "cross-dataset behavior is not a capacity-controlled causal comparison",
+    "public redistribution remains blocked pending source/derived-data license confirmation"
+  ],
+  "duration_error_train_boundaries_seconds": [
+    315.0,
+    1750.0
+  ],
+  "empty_states": 7,
+  "exact_disagreement_rate": 0.2624409092953668,
+  "final_status": "MPC EXPERT DATASET v3 READY WITH DOCUMENTED LIMITATIONS",
+  "h1_defer_rate": 0.0,
+  "h1_failures": 0,
+  "h1_presolve_same_model_retries": 0,
+  "h4_defer_rate": 0.0,
+  "h4_failures": 0,
+  "h4_presolve_same_model_retries": 5,
+  "high_risk_state_disagreement_rate": 0.9695624603677869,
+  "high_risk_task_disagreement_rate": 0.39629802569352157,
+  "hp_disagreement_rate": 0.25744684433731924,
+  "nonempty_states": 17663,
+  "policy_training_used": false,
+  "pressure_train_boundaries": [
+    0.633820591625048,
+    0.678798501728774
+  ],
+  "project_git_head": "90eb972f78742603b522fabc3e1cf65391434418",
+  "risk_threshold_train_p95": 0.72463503649635,
+  "rl_used": false,
+  "solver_anomalies": [
+    {
+      "fallback_label_used": false,
+      "initial_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "initial_status": "infeasible",
+      "planner": "H4",
+      "retry_backend": "SCIPY_MILP_HIGHS_SAME_MODEL_PRESOLVE_FALSE",
+      "retry_message": "PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "retry_status": "optimal",
+      "step": 2473,
+      "verified_feasible_witness": "ALL_TERMINAL_BACKLOG"
+    },
+    {
+      "fallback_label_used": false,
+      "initial_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "initial_status": "infeasible",
+      "planner": "H4",
+      "retry_backend": "SCIPY_MILP_HIGHS_SAME_MODEL_PRESOLVE_FALSE",
+      "retry_message": "PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "retry_status": "optimal",
+      "step": 8433,
+      "verified_feasible_witness": "ALL_TERMINAL_BACKLOG"
+    },
+    {
+      "fallback_label_used": false,
+      "initial_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "initial_status": "infeasible",
+      "planner": "H4",
+      "retry_backend": "SCIPY_MILP_HIGHS_SAME_MODEL_PRESOLVE_FALSE",
+      "retry_message": "PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "retry_status": "optimal",
+      "step": 11636,
+      "verified_feasible_witness": "ALL_TERMINAL_BACKLOG"
+    },
+    {
+      "fallback_label_used": false,
+      "initial_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "initial_status": "infeasible",
+      "planner": "H4",
+      "retry_backend": "SCIPY_MILP_HIGHS_SAME_MODEL_PRESOLVE_FALSE",
+      "retry_message": "PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "retry_status": "optimal",
+      "step": 14852,
+      "verified_feasible_witness": "ALL_TERMINAL_BACKLOG"
+    },
+    {
+      "fallback_label_used": false,
+      "initial_message": "The problem is infeasible. (HiGHS Status 8: model_status is Infeasible; primal_status is None)",
+      "initial_status": "infeasible",
+      "planner": "H4",
+      "retry_backend": "SCIPY_MILP_HIGHS_SAME_MODEL_PRESOLVE_FALSE",
+      "retry_message": "PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+      "retry_status": "optimal",
+      "step": 17322,
+      "verified_feasible_witness": "ALL_TERMINAL_BACKLOG"
+    }
+  ],
+  "spot_disagreement_rate": 0.30302615631231183,
+  "state_any_disagreement_rate": 0.6426428126592312,
+  "sustaincluster_git_head": "3f6ea95cb835b89ba50b0ef76d66d14b8037643e",
+  "task_decisions": 466867,
+  "timeline_complete": true,
+  "total_steps": 17670,
+  "transformer_used": false,
+  "unique_tasks": 466867
+}

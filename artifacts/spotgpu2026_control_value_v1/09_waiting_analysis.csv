@@ -1,0 +1,7 @@
+﻿controller,priority,task_count,waiting_steps_mean,waiting_steps_p50,waiting_steps_p90,waiting_steps_p95,waiting_steps_p99,waiting_steps_max,wait_bound_violation_count,wait_bound_violation_rate,defer_decision_count
+H1,ALL,466867,1.0,1.0,1.0,1.0,1.0,1.0,0,0.0,0
+H1,HP,415713,1.0,1.0,1.0,1.0,1.0,1.0,0,0.0,0
+H1,Spot,51154,1.0,1.0,1.0,1.0,1.0,1.0,0,0.0,0
+H4_ORACLE,ALL,466867,1.017373256195019,1.0,1.0,1.0,1.0,43.0,3228,0.006914174700717764,0
+H4_ORACLE,HP,415713,1.018132702128632,1.0,1.0,1.0,1.0,43.0,3227,0.007762566963265522,0
+H4_ORACLE,Spot,51154,1.0112014700707668,1.0,1.0,1.0,1.0,40.0,1,1.9548813387027406e-05,0

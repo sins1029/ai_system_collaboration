@@ -1,0 +1,8 @@
+metric,matching,total,agreement_rate
+task_key_coverage,259920,259920,1.0
+task_state_identity_agreement,259920,259920,1.0
+student_observation_agreement,259920,259920,1.0
+feasible_mask_agreement,259920,259920,1.0
+h1_action_agreement,259920,259920,1.0
+h4_oracle_action_agreement,259920,259920,1.0
+state_summary_agreement,7680,7680,1.0

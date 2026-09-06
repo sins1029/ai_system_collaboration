@@ -1,0 +1,49 @@
+contract_id: spotgpu2026_native_capacity_v1
+status: CALIBRATED_FROM_COMPLETE_NODE_INFO
+source:
+  node_file: data/raw/alibaba_2026/spot_gpu/node_info_df.csv
+  node_sha256: 1ABA161961A5A4A1A61AA581383C5E5ABE3400B59F8597BA8C4EEF7597BC9D18
+  capacity_fields:
+    cpu: cpu_num
+    gpu: gpu_capacity_num
+  host_memory_field: ABSENT
+partition:
+  method: DETERMINISTIC_STRATIFIED_LARGEST_REMAINDER
+  strata: [gpu_model, cpu_num, gpu_capacity_num]
+  stable_order: [gpu_model, cpu_num, gpu_capacity_num, node_name]
+  dc_weights: [0.18, 0.22, 0.20, 0.25, 0.15]
+  runtime_random_assignment: false
+  node_exclusivity_required: true
+  cpu_gpu_conservation_required: true
+memory:
+  provenance: MODELED_DC_MEMORY
+  source: ALIBABA2020_SUSTAINCLUSTER_FLEET_RATIO
+  numerator_memory_gb: 330000
+  denominator_cpu_cores: 385000
+  ratio: 0.8571428571428571
+  measured_alibaba2026_memory: false
+gpu_heterogeneity:
+  mode: METADATA_ONLY
+  compatibility_constraints: false
+workload:
+  expected_tasks: 466867
+  allow_task_removal: false
+  allow_sampling: false
+  allow_submit_time_change: false
+  allow_duration_change: false
+  allow_request_change: false
+sla:
+  profile: medium
+  max_wait_steps: {HP: 1, Spot: 8}
+dynamic_preflight:
+  split: train
+  window_steps: 16
+  minimum_restore_warmup_steps: 96
+  windows: [LOW_LOAD, MEDIUM_LOAD, HIGH_LOAD, LONG_TASK_DENSE]
+  restore_method: CONTINUOUS_PREFIX_REPLAY_FROM_TRAIN_STEP_0
+  empty_window_reset: false
+comparable_capacity:
+  construct_only_if_native_too_loose: true
+  native_too_loose_requires_all:
+    gpu_offered_load_ratio_below: 0.30
+    gpu_mandatory_peak_ratio_below: 0.50

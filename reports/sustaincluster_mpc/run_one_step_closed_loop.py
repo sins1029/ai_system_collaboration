@@ -11,6 +11,11 @@ from statistics import mean
 import pandas as pd
 import yaml
 
+from sustaincluster_contract.integration import (
+    bind_cluster_task_extractor,
+    bind_task_scheduling_env,
+)
+from sustaincluster_contract.runtime import RuntimeInformationContract
 from sustaincluster_mpc import (
     ObjectiveWeights,
     OneStepOptimizer,
@@ -33,9 +38,11 @@ def build_env(repo: Path, allow_defer: bool):
     with (repo / "configs/env/reward_config.yaml").open(encoding="utf-8") as stream:
         reward_config = yaml.safe_load(stream)["reward"]
 
+    contract = RuntimeInformationContract.for_mode("oracle")
     sim_config["single_action_mode"] = False
     sim_config["disable_defer_action"] = not allow_defer
     sim_config["use_tensorboard"] = False
+    sim_config["information_mode"] = contract.information_mode
     start = pd.Timestamp(
         year=sim_config["year"],
         month=sim_config["month"],
@@ -54,6 +61,7 @@ def build_env(repo: Path, allow_defer: bool):
         cloud_provider=sim_config["cloud_provider"],
         logger=None,
     )
+    bind_cluster_task_extractor(cluster, contract)
     reward = CompositeReward(
         components=reward_config["components"],
         normalize=reward_config.get("normalize", False),
@@ -68,7 +76,7 @@ def build_env(repo: Path, allow_defer: bool):
         sim_config=sim_config,
         initial_seed_for_resets=123,
     )
-    return env
+    return bind_task_scheduling_env(env, contract)
 
 
 def env_fingerprint(env) -> tuple:

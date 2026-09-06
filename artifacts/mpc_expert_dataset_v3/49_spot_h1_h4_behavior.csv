@@ -1,0 +1,2 @@
+scenario_id,task_decisions,exact_agreement_rate,exact_disagreement_rate,placement_disagreement_rate,defer_disagreement_rate,nonempty_states,state_any_disagreement_rate,state_full_agreement_rate
+B_SPOTGPU2026_NATIVE_MEDIUM,466867,0.7375590907046332,0.2624409092953668,0.2624409092953668,0.0,17663,0.6426428126592312,0.3573571873407688

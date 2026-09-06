@@ -1,0 +1,3 @@
+scenario_id,task_decisions,defer_disagreements,defer_disagreement_rate,h1_defer_rate,oracle_defer_rate,status
+A_ALIBABA2020_REPAIRED,259920,0,0.0,0.0,0.0,V2_FROZEN_BASELINE
+B_SPOTGPU2026_MEDIUM,NOT_RUN,NOT_RUN,NOT_RUN,NOT_RUN,NOT_RUN,SPOT_PREFLIGHT_BLOCKED

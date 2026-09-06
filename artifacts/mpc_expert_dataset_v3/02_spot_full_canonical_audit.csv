@@ -1,0 +1,15 @@
+check,value,status
+raw_jobs,466867,PASS
+canonical_jobs,466867,PASS
+filtered_jobs,0,PASS
+duplicate_task_ids,0,PASS
+null_cells,0,PASS
+request_scope,PER_JOB,PASS
+arrival_rule,floor(submit_time/900),PASS
+task_order,"submit_time,original_index,task_id",PASS
+random_shuffle,False,PASS
+duration_estimator_train_rows,326806,PASS
+bandwidth_frozen_gb,0.020062580706,PASS
+gpu_heterogeneity,METADATA_ONLY,PASS
+canonical_content_sha256,BDC5C313E38C8339410D8633CF0045F23B1608386B0E774CB1116219F93DB914,PASS
+maximum_mandatory_capacity_ratio,2.8185068965517286,BLOCK

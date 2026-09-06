@@ -1,0 +1,83 @@
+{
+  "contract": "spotgpu2026_scenario_contract_v1",
+  "audit_date": "2026-09-04",
+  "workspace": {
+    "branch": "feature/baseline-repair-information-contract-v1",
+    "head": "90eb972f78742603b522fabc3e1cf65391434418",
+    "sustaincluster_head": "3f6ea95cb835b89ba50b0ef76d66d14b8037643e",
+    "dirty_workspace_preserved": true
+  },
+  "source_rows": {
+    "spot_jobs": 466867,
+    "spot_nodes": 4278
+  },
+  "split_rows": {
+    "train": 326806,
+    "validation": 70030,
+    "test": 70031
+  },
+  "request_scope": "PER_JOB",
+  "duration_support": 100,
+  "duration_validation": {
+    "group": "ALL",
+    "value": "ALL",
+    "count": 70030,
+    "mae_seconds": 137366.31351563617,
+    "median_ae_seconds": 1560.0,
+    "p90_ae_seconds": 63153.69999999993,
+    "true_p50_seconds": 1668.0,
+    "prediction_p50_seconds": 1377.0
+  },
+  "memory_model": "ALIBABA2020_TRAIN_ONLY_CONDITIONAL_MEDIAN",
+  "bandwidth_model": "ALIBABA2020_TRAIN_ONLY_GLOBAL_MEDIAN",
+  "origin_model": "DETERMINISTIC_SHA256_WEIGHTED_ACTIVITY",
+  "sla_profile": "medium",
+  "gpu_heterogeneity": "METADATA_ONLY",
+  "sample_rows": 5000,
+  "sample_sha256": "8D5F9E5E1C32561975C192C49B884977BE585C8973275D0B4D0152307ED9FD4B",
+  "static_feasible_rate": 1.0,
+  "serious_capacity_mismatch": false,
+  "ready_for_v3": true,
+  "expert_dataset_v3_generated": false,
+  "mpc_run": false,
+  "model_training": false,
+  "derived_dataset_redistribution": "NOT_CONFIRMED",
+  "validation": {
+    "compileall": "PASS",
+    "dedicated_tests": "8 passed",
+    "regression_tests": "81 passed",
+    "full_tests": "368 passed",
+    "new_failures": "0"
+  },
+  "artifact_sha256": {
+    "01_request_scope_audit.md": "1139DA0F622328A7FC5988EA9D8D8C6400EE2A6581C34BE8100AB3C493ADD1CB",
+    "02_request_scope_evidence.csv": "0D8118814A9E799350B95479DCE412D80C51DA5CD8024B359F1B1ACD81E84053",
+    "03_request_scope_sensitivity.csv": "B46419CE163431FB274CCBD4E6FEEEFD2E0B2FFF426556AF8501983CA8C1C90F",
+    "04_arrival_contract.md": "B0898ED0CEE23CF6F3926EE9009409F127AE9F0287DE771024A76792D85C428C",
+    "05_duration_estimator_contract.md": "B4058671B0F939979F1CF9470727C06BA4B7539DEBEECC15099223972356D125",
+    "06_duration_estimator_support.csv": "4E40DD96D7B2A41AF725C9C9F0F1CE5D1C4030607ED4929F88EA578E05A24837",
+    "07_duration_estimator_validation.csv": "F53102234040FBE792F814F8D2E2FE36AEDE60D79AADF635CDEA996609162472",
+    "08_memory_model_contract.md": "4323B35B0EA33D794136E7DEE61B82DC88B28C63C3378BFA7F89D5F4945ABD9C",
+    "09_memory_model_validation.csv": "F759FCB5E2CC4F8A5B0DC931CDBFC39DA126D8A513C6D809D05486ADAF3E0BE2",
+    "10_bandwidth_model_contract.md": "D68C55919FB7DC3C87BEBE100214B9ED84BB67D9D3EB1F59A2E347786579D074",
+    "11_bandwidth_sensitivity.csv": "A7C9B36FEED0DFA515E79D66ABB39F12842FEAFA48EDAC5A0DB6E047D25CEF74",
+    "12_origin_dc_contract.md": "6427E868BECA2DE156BB2ED2D77FFAA494866D78E5F1028A3AF58E7466263689",
+    "13_origin_dc_distribution.csv": "D12A24C3F38A911EA59CA6E7B71A74B2A700F60A4CAA3BBCB9AE9CE152E11431",
+    "14_sla_defer_contract.md": "453A0F5F1B33961CB4F617DE276C1CC6C7D8ABB0D7694CEBD6A55AC292FA29FD",
+    "15_sla_scenario_table.csv": "F326E4B821C2EB652732AE00334777624F995DF83C3112FF169525CA81B56937",
+    "16_gpu_type_contract.md": "2A5EE04BD4A4DC6CAA692F3EFAFDDF01BD583760A7EC3B9BC654BDF820545AE2",
+    "17_field_provenance_contract.csv": "C64FAC2913092DB625788473E15D51397A31CCBED6AAAAC941827CE353221D45",
+    "18_spot_canonical_schema.csv": "E1E64E2D06194221A116CADE3FBAB0E8DCCDD3755866174EFD6E56073C504A0F",
+    "19_spot_canonical_schema.md": "E3692533FDD1549A5B6645997B5AEC5EC1FE9920E3E35B1483763A9F97F7D4CF",
+    "20_spot_canonical_frozen_sample.csv": "9FB6969EB19CCFECC654D1999648AC1C9E2946F1A322869BE89AD601F27D4F8F",
+    "21_resource_quality_audit.csv": "2F6AAE85C98B2CF659FDFBB016E737F660B3559F348300287953C096BA963166",
+    "22_resource_quality_report.md": "A036CAE23471A22C7D388C552CF7CB78C2CC6B3FF4DD9C6F4D454420D62DD954",
+    "23_static_feasibility_audit.csv": "DD5981BB13DE5CBA4D09C2C043AFDA3730D95BB27F1F52F1A101DA66CC0F860D",
+    "24_static_feasibility_report.md": "9CA40D09D954529096F1B7C08AA5C38539FC1C740E20B22AA19BB4F2B3F4C5B3",
+    "25_frozen_scenario_contract.md": "BF6C780C82BE7D5476ABBF65423DC62ACBD1C172A47D5005E2426E363D08BE57",
+    "26_information_leakage_audit.md": "6AC9B3D38BD34DAA66656623792F2F75DB1115660DAB887339307AFF64843841",
+    "27_tests.md": "1B2863E9F2D7BC3F52E01C3BA401A1FF9625DDEDBF49A4280F2F77F96EC7AB2C",
+    "28_final_diagnosis.md": "153FF5B81B0F5C593A125B6F93B71EA3B5C75EF407F2F6F2888341A6763BC9BF",
+    "29_summary.md": "1A07161792DF9407A03221AB9B340558FA49589B8A34DC3DEC638C24DCCEE97A"
+  }
+}

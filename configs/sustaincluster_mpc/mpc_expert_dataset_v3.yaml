@@ -1,0 +1,111 @@
+mpc_expert_dataset_v3:
+  dataset_version: mpc_expert_dataset_v3
+  output_dir: artifacts/mpc_expert_dataset_v3
+  generation_mode: PREFLIGHT_THEN_FORMAL_IF_ALL_GATES_PASS
+  expected_project_branch: feature/baseline-repair-information-contract-v1
+  expected_project_head: 90eb972f78742603b522fabc3e1cf65391434418
+  expected_sustaincluster_head: 3f6ea95cb835b89ba50b0ef76d66d14b8037643e
+  optimizer_config: configs/sustaincluster_mpc/h4_expert.yaml
+  datacenter_config: references/external_repos/sustain-cluster/configs/env/datacenters.yaml
+  action_mapping:
+    0: defer
+    1: assign_dc1
+    2: assign_dc2
+    3: assign_dc3
+    4: assign_dc4
+    5: assign_dc5
+
+  scenario_a:
+    scenario_id: A_ALIBABA2020_REPAIRED
+    source_dataset: Alibaba2020
+    source_file: references/external_repos/sustain-cluster/data/workload/alibaba_2020_dataset/result_df_full_year_2020.pkl
+    source_sha256: 3BA8A8E0067288F8D2542752A292F7DA04CB79305689BA145CC6060E96CB7F2E
+    v2_root: artifacts/repaired_mpc_expert_dataset_v2
+    v2_task_file: dataset/expert_task_actions_full.parquet
+    v2_task_sha256: 27E0B22558E1F00AA22E3B899D505E7506C10192ED99EA360278C8D819FF9E3C
+    v2_state_file: dataset/state_disagreement_summary.parquet
+    v2_state_sha256: 3AA50ACB32EAEEA1DBE89B6FABF7149E3C6CC8276FE902D91271F51EA2EEC405
+    seeds: {start: 3001, stop: 3040}
+    scenarios: [normal_trace, high_load_trace]
+    expected_episodes: 80
+    expected_states: 7680
+    expected_task_decisions: 259920
+    split_manifest: artifacts/repaired_mpc_expert_dataset_v2/05_split_manifest.json
+    high_risk_threshold: 0.5854637687956499
+    alignment_policy: EXACT_KEY_AND_FIELD_COMPARISON
+
+  scenario_b:
+    scenario_id: B_SPOTGPU2026_NATIVE_MEDIUM
+    source_dataset: Alibaba_SpotGPU2026
+    contract_config: configs/scenarios/spotgpu2026_v1.yaml
+    contract_config_sha256: 77B14DFD9D6599E642CC91296CA505437E3F63E41D28A113516E2B6A67D992C4
+    contract_version: spotgpu2026_scenario_contract_v1
+    request_scope: PER_JOB
+    time_step_seconds: 900
+    task_order: [submit_time, original_index, task_id]
+    no_shuffle: true
+    split: {train: 0.70, validation: 0.15, test: 0.15}
+    duration_estimator:
+      method: hierarchical_conditional_median
+      train_only: true
+      minimum_support: 100
+    memory:
+      method: ALIBABA2020_TRAIN_ONLY_CONDITIONAL_MEDIAN
+      provenance: MODELED
+    bandwidth:
+      value_gb: 0.020062580706
+      scenario_multiplier: 1.0
+      provenance: MODELED
+    origin:
+      method: DETERMINISTIC_SHA256_WEIGHTED_ACTIVITY
+      runtime_rng: false
+      provenance: MODELED_ORIGIN
+    sla_profile: medium
+    max_wait_steps: {HP: 1, Spot: 8}
+    defer_allowed: {HP: true, Spot: true}
+    gpu_heterogeneity: METADATA_ONLY
+    capacity_calibration:
+      config: configs/scenarios/spotgpu2026_native_capacity_v1.yaml
+      source: COMPLETE_NODE_INFO
+      calibrated_status: SPOT NATIVE CAPACITY READY
+      total_cpu: 632636
+      total_gpu: 10412
+      memory_provenance: MODELED_DC_MEMORY
+    formal_rollout:
+      continuous_timeline_required: true
+      empty_window_reset_forbidden: true
+      state_restore_required_if_windowed: true
+      checkpoint_interval_steps: 250
+      rollout_start_step: 0
+      rollout_end_rule: LAST_ARRIVAL_STEP_INCLUSIVE
+
+  planners:
+    h1:
+      horizon_capacity_nodes: 1
+      information_class: DEPLOYABLE_CURRENT
+      label_provenance: H1_REPAIRED_CURRENT_ONLY
+    h4_oracle:
+      horizon_capacity_nodes: 5
+      privileged_offsets_minutes: [15, 30, 45, 60]
+      information_class: PRIVILEGED_ORACLE
+      label_provenance: H4_ORACLE_REPAIRED
+    transformer_forecast_in_dataset: false
+
+  information_regions:
+    deployable_current:
+      default_loader_visible: true
+    simulator_only:
+      default_loader_visible: false
+    privileged_future:
+      default_loader_visible: false
+    labels:
+      default_loader_visible: false
+
+  preflight_gates:
+    request_scope_must_equal: PER_JOB
+    static_infeasible_rate_max: 0.01
+    mandatory_concurrent_capacity_ratio_max: 1.0
+    solver_failures_required: 0
+    fallback_labels_allowed: false
+    formal_generation_on_gate_failure: BLOCK
+

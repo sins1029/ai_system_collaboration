@@ -1,0 +1,15 @@
+information_contract_v1:
+  legacy_oracle:
+    information_mode: oracle
+    duration_estimate_mode: oracle
+    future_signal_mode: oracle
+    future_arrival_mode: oracle
+    notes: Upper-bound and legacy-reproduction mode; non-deployable.
+
+  deployable_baseline:
+    information_mode: deployable
+    duration_estimate_mode: declared_or_baseline
+    baseline_estimated_duration_minutes: 60.0
+    future_signal_mode: persistence
+    future_arrival_mode: no_future_arrivals
+    notes: PLACEHOLDER BASELINE until causal runtime and arrival forecasts exist.

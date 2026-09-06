@@ -1,0 +1,59 @@
+spotgpu2026_control_value_v1:
+  status: FROZEN_CONTROL_VALUE_EVALUATION
+  scenario_id: B_SPOTGPU2026_NATIVE_MEDIUM
+  source_dataset_version: mpc_expert_dataset_v3
+  source_config: configs/sustaincluster_mpc/mpc_expert_dataset_v3.yaml
+  optimizer_config: configs/sustaincluster_mpc/h4_expert.yaml
+  capacity_config: configs/scenarios/spotgpu2026_native_capacity_v1.yaml
+  output_dir: artifacts/spotgpu2026_control_value_v1
+
+  workload:
+    task_count: 466867
+    request_scope: PER_JOB
+    timestep_seconds: 900
+    primary_steps: 17670
+    stable_order: [submit_time, original_index, task_id]
+    reset_at_split_boundary: false
+
+  capacity:
+    total_cpu_cores: 632636
+    total_gpu_units: 10412
+    total_memory_gb: 542259.4285714285
+    gpu_units_by_dc: [1875, 2291, 2070, 2615, 1561]
+    scaling_allowed: false
+
+  controllers:
+    h1:
+      horizon_capacity_nodes: 1
+      information_mode: deployable
+      oracle_future_allowed: false
+    h4_oracle:
+      horizon_capacity_nodes: 5
+      information_mode: oracle
+      future_offsets_minutes: [15, 30, 45, 60]
+
+  rollout:
+    checkpoint_interval_steps: 250
+    maximum_tail_drain_steps: 17670
+    tail_rule: NO_NEW_ARRIVALS_UNTIL_EMPTY_OR_COMMON_MAXIMUM
+    preflight_steps: 100
+    checkpoint_exact_split_step: 50
+
+  analysis:
+    daily_block_steps: 96
+    weekly_block_steps: 672
+    frozen_risk_threshold_train_p95: 0.72463503649635
+    external_pressure_metric: new_gpu_demand
+    external_pressure_threshold_fit_split: train
+    external_pressure_quantile: 0.95
+    fixed_action_equivalence_rule: DETERMINISTIC_TIE_BREAK_SCALE
+    deterministic_tie_break_epsilon: 1.0e-9
+    maximum_dc_rank_gap: 4
+
+  exclusions:
+    transformer: true
+    behavior_cloning: true
+    reinforcement_learning: true
+    reward_tuning: true
+    mpc_tuning: true
+    workload_rescaling: true

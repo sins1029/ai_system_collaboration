@@ -1,0 +1,5 @@
+window_type,steps_checked,restored_pre_window_running_task_count,empty_state_start,max_queue_before_dispatch,max_queue_after_dispatch,end_queue,hard_sla_violations,h1_optimal_steps,h4_optimal_steps,h1_failure_or_timeout,h4_failure_or_timeout,h1_solve_ms_p95,h4_solve_ms_p95,max_h1_projected_sla_violations,max_h4_projected_sla_violations
+LOW_LOAD,16,5011,False,23,0,0,0,16,16,0,0,2.5514750159345567,2.292099903570488,0,0
+MEDIUM_LOAD,16,5307,False,31,0,0,0,16,16,0,0,1.3570500013884157,3.2171250495593995,0,0
+LONG_TASK_DENSE,16,5616,False,138,0,0,0,16,16,0,0,2.509175013983622,9.084924939088523,0,0
+HIGH_LOAD,16,6389,False,146,0,0,0,16,16,0,0,2.5290749326813966,9.34407499153167,0,0

@@ -1,0 +1,10 @@
+metric,value
+total_time_steps,17670
+nonempty_scheduling_states,17663
+empty_states,7
+task_decisions,466867
+unique_tasks,466867
+pending_at_trace_end,0
+running_at_trace_end,39
+in_transit_at_trace_end,2
+completed_by_trace_end,466826

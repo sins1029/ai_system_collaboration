@@ -1,0 +1,4 @@
+split,states,nonempty_states,empty_states,task_decisions,unique_task_ids,minimum_step,maximum_step,state_crosses_split
+train,10528,10528,0,326842,326842,0,10527,False
+validation,3313,3308,5,69999,69999,10528,13840,False
+test,3829,3827,2,70026,70026,13841,17669,False

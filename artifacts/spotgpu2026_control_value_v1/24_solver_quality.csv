@@ -1,0 +1,8 @@
+﻿record_type,controller,solver_calls,optimal,retry,failure,timeout,fallback,solve_ms_mean,solve_ms_p50,solve_ms_p90,solve_ms_p95,solve_ms_p99,solve_ms_max,step,solver_status,solver_message
+SUMMARY,H1,17663.0,17663.0,0,0,0,0,2.3488136440113103,1.4951999764889479,3.652619989588857,5.958049965556707,16.917648003436693,1162.643300020136,,,
+SUMMARY,H4_ORACLE,17663.0,17663.0,5,0,0,0,3.727156575725686,2.6215999387204647,6.182719953358176,9.434200008399758,21.736791939474728,567.3689000541344,,,
+PRESOLVE_RETRY,H4_ORACLE,,,1,0,0,0,,,,,,,2473.0,optimal,PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)
+PRESOLVE_RETRY,H4_ORACLE,,,1,0,0,0,,,,,,,8433.0,optimal,PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)
+PRESOLVE_RETRY,H4_ORACLE,,,1,0,0,0,,,,,,,11636.0,optimal,PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)
+PRESOLVE_RETRY,H4_ORACLE,,,1,0,0,0,,,,,,,14852.0,optimal,PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)
+PRESOLVE_RETRY,H4_ORACLE,,,1,0,0,0,,,,,,,17322.0,optimal,PRESOLVE_RETRY_AFTER_infeasible: Optimization terminated successfully. (HiGHS Status 7: Optimal)
