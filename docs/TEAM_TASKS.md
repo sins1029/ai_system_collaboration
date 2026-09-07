@@ -8,11 +8,23 @@
 
 ## 1. 统一研究基线
 
-- 基线分支：`feature/baseline-repair-information-contract-v1`
+### Research experiment milestone
+
 - Milestone commit：`c83515bf977494d5610197dfd2faa9d19af62d46`
 - Milestone tag：`research-v3-expert-control-value-20260906`
+- 含义：Expert Dataset v3 + Spot control-value baseline 冻结点
 - Expert foundation：`MPC EXPERT DATASET v3 READY WITH DOCUMENTED LIMITATIONS`
 - Spot control diagnosis：`CONTEXT_DEPENDENT_CONTROL_VALUE`
+
+### Team collaboration baseline
+
+- 协作分支：`feature/baseline-repair-information-contract-v1`
+- 上一文档基线：`ec0fab91f88df1076fe50db8040d9bbc8f941f4b`
+- 当前协作基线：上述协作分支中包含本次 README / TEAM_TASKS 修订的最新 HEAD
+- 精确版本：组员开始任务前执行 `git rev-parse HEAD` 记录；本次修订的最终 commit SHA 由 Git 历史与发布记录给出
+- 含义：当前 README + TEAM_TASKS 文档基线
+
+研究 milestone 用于复现实验冻结点；组员实际创建 task branch 时必须从最新 team collaboration baseline 开始，而不是直接从 research milestone tag 开始。
 
 统一研究判断：
 
@@ -33,7 +45,7 @@ flowchart LR
 
 - A、C、D 可以并行。
 - B 可以在 A 完成前搭建 feature extraction、state analysis 和 plotting pipeline。
-- B 的正式 value label、结论与验收依赖 A。
+- B 的正式 state-level counterfactual value label、结论与验收依赖 A。
 - 本轮只定义任务，不自动创建任何 task branch。
 
 ## 3. 任务 A：H1/H4 分歧动作价值审计
@@ -61,34 +73,93 @@ flowchart LR
 
 ### 任务范围
 
-1. 提取 `H1 != H4` 的 states 与 tasks。
-2. 在固定状态下计算 H1/H4 chosen-action objective gap。
-3. 分解 objective components：
+1. 提取 `H1 joint action != H4 joint action` 的公共 frozen states。
+2. 对每个分歧 state 复制两个完全相同的动态 simulator state：
+   - Branch A 第一步执行 H1 joint action。
+   - Branch B 第一步执行 H4 joint action。
+   - 从第二步开始，两边使用完全相同的 common continuation controller。
+3. 两个分支必须共享完全一致的 workload、arrivals、true duration、energy signal、carbon signal、SLA、capacity 与 task order。
+4. 比较两个分支在相同后续控制条件下的 realized cumulative control cost。
+5. 分解 cost components：
    - SLA
    - electricity
    - carbon
    - transmission
    - migration
    - waiting / backlog
-4. 区分：
-   - H4 better
-   - near equivalent
-   - H4 worse
-5. near-equivalent 阈值必须来自：
-   - solver tolerance
-   - objective numerical scale
-6. 报告 H4 advantage distribution。
-7. 选择可复核的典型案例，展示状态、动作、成本分量与判断依据。
-8. 分别报告 task-level 与 state-level 结果，避免混用分母。
+6. 报告 `Delta J_K` 的连续分布，并在阈值证据充分时区分 H4 better、near equivalent 与 H4 worse。
+7. 选择可复核的典型案例，展示 state、joint action、累计成本分量与判断依据。
+8. 任务级结果只用于 attribution / descriptive analysis，不得替代 state-level counterfactual value。
+
+### 主评价协议
+
+Primary value unit：`STATE-LEVEL JOINT ACTION`。
+
+H1/H4 是同一时刻 pending tasks 的联合求解。capacity、queue、migration/transmission 与 reservation coupling 使任务动作不能被独立赋予主 value label。任务级标签的定位必须明确为 `SECONDARY ATTRIBUTION ONLY`。
+
+不能直接用 H4 自身的多步 optimization objective 比较两个 chosen actions，因为不同 horizon 可能使评价天然偏向 H4；也不能只比较 one-step stage cost，因为这会忽略第一步动作的后续影响并可能偏向 H1。主评价必须使用下面定义的共同反事实闭环。
+
+默认 counterfactual horizon：
+
+- 主窗口：`4 steps = 60 min`，与 H4 horizon 对齐。
+- 敏感性窗口：`8 steps = 120 min`。
+- 敏感性窗口：`16 steps = 240 min`。
+
+不得只报告单一 horizon。
+
+共同后续策略优先级：
+
+1. H1 continuation。
+2. 现有 frozen baseline continuation。
+
+不强制实现当前代码中不存在的 controller。若 H1 是唯一稳定且可验证的选择，则在 protocol 中明确记录 `Counterfactual continuation = H1`。无论选择哪一个 controller，两个分支必须使用同一个 controller；禁止 H1-first 分支继续 H1、H4-first 分支继续 H4。
+
+对每个 state 和 `K in {4, 8, 16}` 定义：
+
+```text
+Delta J_K =
+J_K(H4 first action + common continuation)
+-
+J_K(H1 first action + common continuation)
+```
+
+- `Delta J_K < 0`：H4 first action 更优。
+- `Delta J_K ≈ 0`：近似等价。
+- `Delta J_K > 0`：H4 first action 更差。
 
 ### 分析要求
 
-- 固定状态评估不得推进或改变 simulator。
+- 两个 counterfactual branch 必须从相同 frozen state 启动，并独立推进 simulator，不得相互污染。
+- 两个分支除第一步 joint action 外，后续 controller 与全部外生输入必须一致。
 - 不构造新的综合评分。
-- objective component sum 必须与 frozen objective 一致。
+- realized cost component sum 必须与 frozen objective 语义一致。
 - 连续 gap 分布是主结果，分类只是有依据的辅助结果。
-- 如果阈值证据不足，不强制给出 near-equivalent 硬分类。
+- near-equivalent 阈值不得写死，必须由 solver tolerance、numerical scale 与 metric precision 共同决定。
+- 如果阈值证据不足，不强制给出 near-equivalent 硬分类，优先报告连续 gap 分布。
+- fixed-state one-step chosen-action gap 只可作为补充诊断，不得作为主 value definition。
 - Oracle future 只可用于离线解释，不得进入 deployable input。
+
+### 最低输出字段
+
+- `state_id`
+- `h1_joint_action_hash`
+- `h4_joint_action_hash`
+- `counterfactual_horizon_steps`
+- `J_h1_first`
+- `J_h4_first`
+- `delta_J`
+- `stage_cost_delta`
+- `sla_delta`
+- `electricity_delta`
+- `carbon_delta`
+- `transmission_delta`
+- `migration_delta`
+- `waiting_delta`
+- `backlog_delta`
+- `value_label`
+- `continuation_controller`
+- `objective_provenance`
+- `protocol_provenance`
 
 ### 禁止
 
@@ -130,12 +201,25 @@ flowchart LR
 - 可从 frozen v3 复现
 - H1/H4 label hash 不变
 - frozen objective hash 不变
-- objective component sum consistency：PASS
+- 两个分支的初始状态与后续外生序列一致：PASS
+- common continuation controller 一致：PASS
+- `K = 4 / 8 / 16` 均有报告
+- realized cost component sum consistency：PASS
 - information leakage audit：PASS
 - solver tolerance provenance：明确
 - dedicated tests：PASS
 - relevant regressions：PASS
 - new failures：0
+
+最终必须回答：
+
+1. 在 H1/H4 分歧 state 中，H4 first action 真正改善 4-step realized cost 的比例是多少？
+2. 在 8-step / 16-step 下是否稳定？
+3. 有多少状态 H4 first action 反而更差？
+4. 有多少状态只能视为近似等价？
+5. 正收益主要来自 SLA、electricity、carbon、transmission、migration、backlog 中哪些分量？
+6. 结论是否依赖 continuation controller？
+7. task-level attribution 与 state-level joint value 是否一致？
 
 ## 4. 任务 B：前瞻价值状态特征分析
 
@@ -151,11 +235,14 @@ flowchart LR
 
 ### 输入标签
 
-正式分析使用任务 A 输出的 value label：
+正式分析优先使用任务 A 输出的 state-level counterfactual value：
 
-- H4 better
-- near equivalent
-- H4 worse
+- state-level value label
+- `Delta J_4`
+- `Delta J_8`
+- `Delta J_16`
+
+task-level attribution 只作为附加解释，不能作为任务 B 的主标签。
 
 在 A 完成前只能搭建不依赖最终标签的处理管线。
 
@@ -185,7 +272,7 @@ flowchart LR
 
 1. 建立 feature schema 与字段 provenance。
 2. 提取与 frozen v3 对齐的 state features。
-3. 比较 H4-better / equivalent / worse 三组。
+3. 比较 state-level H4-better / equivalent / worse 三组，并分别检查不同 counterfactual horizon。
 4. 使用 train-only 阈值做分位数分层。
 5. 报告 descriptive correlation。
 6. 报告 conditional statistics。
@@ -211,7 +298,7 @@ flowchart LR
 - MPC tuning
 - reward tuning
 - data leakage
-- 修改 A 的 value label
+- 修改 A 的 state-level counterfactual value label
 - 把 Oracle future 当作 deployable feature
 - 对连续单轨迹伪造独立样本假设
 
@@ -242,9 +329,11 @@ flowchart LR
 
 必须明确回答：
 
-- 哪些因素最能区分 H4 genuinely useful？
-- 哪些因素对应 H4 unnecessary 或 harmful？
+- 哪些因素最能区分 state-level H4 genuinely useful？
+- 哪些因素对应 state-level H4 unnecessary 或 harmful？
 - 结论是否跨 split 稳定？
+- 结论是否跨 `Delta J_4 / Delta J_8 / Delta J_16` 稳定？
+- task-level attribution 与 state-level joint value 是否一致？
 - 结果是描述性关联还是具有额外识别假设？
 - 大型 state feature 数据是否保持本地？
 
@@ -506,12 +595,13 @@ checkpoints 在本地保存，默认不提交大权重。
 git fetch origin
 git switch feature/baseline-repair-information-contract-v1
 git pull --ff-only
+git rev-parse HEAD
 ```
 
-从统一 milestone 创建自己的 task branch。示例：
+确认 HEAD 是包含本次 README / TEAM_TASKS 修订的最新 team collaboration baseline 后，从当前 HEAD 创建自己的 task branch。Research experiment milestone tag 仅作为实验复现锚点。示例：
 
 ```powershell
-git switch -c task/action-value-audit research-v3-expert-control-value-20260906
+git switch -c task/action-value-audit
 ```
 
 其他分支分别为：

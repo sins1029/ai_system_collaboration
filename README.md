@@ -214,13 +214,15 @@ daily blocks 中 H4 stage cost 更优的比例约为 21.08%，尾部排空不改
 
 > SpotGPU2026 中未来信息显著改变空间放置决策，但动作变化没有自动转化为稳定的综合控制收益。
 
+高风险状态只表示 H1/H4 动作分歧更集中，不等同于 H4 在这些状态中产生正控制价值。
+
 详见 [Spot 控制价值摘要](artifacts/spotgpu2026_control_value_v1/28_summary.md)。
 
 ## 7. 当前核心结论
 
 1. 未来 workload 可以预测。
 2. 更准确的预测不保证在线 MPC 平均收益显著提高。
-3. MPC 的前瞻价值具有明显状态依赖性。
+3. 前瞻动作的影响具有明显状态依赖性，其正控制价值仍需进一步识别。
 4. 在各自 source-matched frozen capacity scenario 下，SpotGPU2026 的 H1/H4 动作分歧高于 Alibaba2020。
 5. 大量前瞻动作差异没有形成稳定正收益。
 6. 当前重点从“如何模仿 H4”转为“哪些 H4 前瞻动作真正值得学习”。
@@ -245,7 +247,7 @@ daily blocks 中 H4 stage cost 更优的比例约为 21.08%，尾部排空不改
 
 ## 9. 下一阶段
 
-1. **前瞻动作价值审计**：区分 H4 更优、近似等价和 H4 更差的分歧动作。
+1. **前瞻动作价值审计**：在共同反事实后续控制下，比较 H1/H4 不同第一步联合动作的实际多步代价，识别哪些前瞻动作真正产生正控制价值。
 2. **有价值状态特征分析**：研究正 action value 与 pressure、energy、queue、release、task type 和 priority 的关系。
 3. **SpotGPU2026 workload forecast**：评价 +15/+30/+45/+60 min prediction，不接 MPC、BC 或 RL。
 4. **跨数据集分析**：描述 Alibaba2020 与 SpotGPU2026 的 workload / scheduling 差异，不做难度因果判断。
