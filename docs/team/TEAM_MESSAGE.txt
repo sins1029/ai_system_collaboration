@@ -1,0 +1,38 @@
+大家后续统一使用：
+
+competition/team-dev-ready
+
+第一次部署：
+
+git clone https://github.com/sins1029/ai_system_collaboration.git
+cd ai_system_collaboration
+git fetch --all --tags
+git switch competition/team-dev-ready
+
+先阅读：
+
+README_TEAM.md
+
+本地部署：
+
+docs/team/DEPLOYMENT.md
+
+开发说明：
+
+docs/team/DEVELOPMENT.md
+
+总体架构：
+
+docs/team/ARCHITECTURE.md
+
+数据库：
+
+docs/team/DATABASE.md
+
+Dashboard：
+
+docs/team/DASHBOARD.md
+
+请各自在 feature/xxx 分支开发，不要直接修改 main 或团队基线。
+
+大型数据、Parquet、checkpoint、SQLite、虚拟环境和第三方仓库不要提交 Git。

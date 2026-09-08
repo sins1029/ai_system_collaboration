@@ -1,3 +1,5 @@
+> 竞赛团队本地部署与协作开发请先阅读 [README_TEAM.md](README_TEAM.md)。
+
 # 面向能源协同优化的多数据中心 AI 任务调度
 
 *Energy-Aware Multi-Datacenter AI Task Scheduling*
