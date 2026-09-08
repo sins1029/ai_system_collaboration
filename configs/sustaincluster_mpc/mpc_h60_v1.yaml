@@ -1,0 +1,47 @@
+mpc_h60_v1:
+  name: MPC-H60-ORACLE
+  current_optimizer_config: configs/sustaincluster_mpc/h4_expert.yaml
+  target_offset_steps: 4
+  target_minutes: 60
+  intermediate_horizons_used: false
+  lambda_terminal: 5.0
+  lambda_terminal_preflight_baseline: 1.0
+  lambda_selection: TRAIN_VALIDATION_NUMERICAL_SCALE_ONLY
+  terminal_weights:
+    resource_pressure: 100.0
+    electricity: 1.0
+    carbon: 1.0
+    terminal_backlog: 100.0
+  terminal_pressure:
+    existing_load: CURRENT_VISIBLE_ACTIVE_TASKS_WITH_ESTIMATED_COMPLETION
+    arrival_load: ORACLE_EXACT_T_PLUS_60_ORIGIN_DEMAND
+    intermediate_arrivals: NOT_USED_AS_INDEPENDENT_NODES
+  duration_for_current_action: estimated_duration
+  solver_time_limit_seconds: 20.0
+  forecast:
+    history_steps: 96
+    target_offset_steps: 4
+    target_horizons: [60]
+    seed: 22
+    preflight_epochs: 3
+    batch_size: 256
+    hidden_dim: 64
+    learning_rate: 0.001
+    formal_training:
+      selection_metric: validation_normalized_macro_mae
+      early_stopping_signal: validation_mse_only
+      test_used_for_selection: false
+      mlp:
+        seeds: [11, 22, 33]
+        max_epochs: 80
+        patience: 8
+      transformer:
+        seed_order: [22, 11, 33]
+        additional_seed_runtime_gate_seconds: 300
+        d_model: 64
+        nhead: 4
+        num_layers: 2
+        dim_feedforward: 128
+        dropout: 0.1
+        max_epochs: 50
+        patience: 6
